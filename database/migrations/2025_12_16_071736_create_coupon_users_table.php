@@ -13,6 +13,9 @@ return new class extends Migration
     {
         Schema::create('coupon_users', function (Blueprint $table) {
             $table->id();
+            $table->string('status');
+            $table->foreignId('coupon_id')->constrained('coupons');
+            $table->foreignId('user_id')->constrained('users');
             $table->timestamps();
         });
     }
