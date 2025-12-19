@@ -1,27 +1,60 @@
 <?php
 
+/**
+ * Created by Reliese Model.
+ */
+
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * Class Payment
+ * 
+ * @property int $id
+ * @property float $coupon_amount
+ * @property float $amount
+ * @property string $method
+ * @property Carbon $date
+ * @property int $order_id
+ * @property int $coupon_id
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * 
+ * @property CouponUser $coupon_user
+ * @property Order $order
+ *
+ * @package App\Models
+ */
 class Payment extends Model
 {
-    protected $table = 'payment';
-    protected $primaryKey = 'id';
-    public $incrementing = false;
-    public $timestamps = false;
+	protected $table = 'payments';
 
-    protected $fillable = [
-        'id','coupon_total','total','method','date','coupon_user_id','order_id'
-    ];
+	protected $casts = [
+		'coupon_amount' => 'float',
+		'amount' => 'float',
+		'date' => 'datetime',
+		'order_id' => 'int',
+		'coupon_id' => 'int'
+	];
 
-    public function order()
-    {
-        return $this->belongsTo(Order::class, 'order_id');
-    }
+	protected $fillable = [
+		'coupon_amount',
+		'amount',
+		'method',
+		'date',
+		'order_id',
+		'coupon_id'
+	];
 
-    public function couponUser()
-    {
-        return $this->belongsTo(CouponUser::class, 'coupon_user_id');
-    }
+	public function coupon_user()
+	{
+		return $this->belongsTo(CouponUser::class, 'coupon_id');
+	}
+
+	public function order()
+	{
+		return $this->belongsTo(Order::class);
+	}
 }
