@@ -54,6 +54,13 @@ Route::post('/signup', function (Request $request) {
 });
 
 // Home
+Route::get('/', function () {
+    return view('home');
+});
+
 Auth::routes();
 
-Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('index');
+Route::get('/home', function () {
+    return view('home');
+})->middleware('auth')->name('dashboard');
+

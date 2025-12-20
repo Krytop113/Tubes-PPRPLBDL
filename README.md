@@ -18,15 +18,14 @@ Copy `.env.example` dan ubah namanya menjadi `.env` (dapat dilakukan manual atau
 cp .env.example .env
 ```
 Setelah itu, setup env ke bagian database dan temukan
-DB_CONNECTION=sqlite
-# DB_HOST=127.0.0.1
-# DB_PORT=3306
-# DB_DATABASE=laravel
-# DB_USERNAME=root
-# DB_PASSWORD=
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306 (sesuaikan port sql nya)
+DB_DATABASE= (nama database/schema nya)
+DB_USERNAME=root
+DB_PASSWORD= (jika ada tulis, jika tidak kosongkan saja)
 
-ubah connection nya menjadi mysql
-dan ubah port, namadatabase, username, dan password nya (pastikan tidak tersebar)
+Sesuaikan dengan format tersebut
 
 ## Generate application key
 Lalu run untuk mendapatkan kunci applikasi nya
@@ -45,3 +44,11 @@ Ketika sudah, dapat langsung melakukan run server nya dengan perintah berikut:
 php artisan serve
 ```
 This will start the server at `http://localhost:8000` by default. You can access the application in your web browser by navigating to that URL.
+
+```bash
+npm run dev
+```
+
+Buat menjalankan vite agar sesi breeze login dapat berjalan
+
+(dilakukan 2 terminal terpisah, 1 npm run dev yang 1 lagi php artisan serve)
