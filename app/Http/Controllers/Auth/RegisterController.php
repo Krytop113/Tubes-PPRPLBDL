@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Foundation\Auth\RegistersUsers;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Carbon;
 
 class RegisterController extends Controller
 {
@@ -67,6 +68,9 @@ class RegisterController extends Controller
             'name' => $data['name'],
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
+            'role_id' => 3,
+            'created_at' => Carbon::now(),
+            'updated_at' => Carbon::now()
         ]);
     }
 }

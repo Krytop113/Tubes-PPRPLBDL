@@ -17,7 +17,7 @@ Route::get('/login', function () {
 
 Route::get('/signup', function () {
     return view('auth.signup');
-})->name('register');
+})->name('signup');
 
 Route::post('/login', function (Request $request) {
     $credentials = $request->validate([

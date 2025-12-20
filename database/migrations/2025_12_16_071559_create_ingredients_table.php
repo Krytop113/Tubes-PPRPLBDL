@@ -19,7 +19,6 @@ return new class extends Migration
             $table->text('description');
             $table->integer('stock_quantity');
             $table->integer('minimum_stock_level');
-            $table->datetime('last_update');
             $table->string('image_url');
             $table->foreignId('ingredient_category_id')->constrained('ingredient_categories');
             $table->timestamps();
