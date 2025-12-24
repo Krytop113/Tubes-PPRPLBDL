@@ -2,100 +2,185 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Order;
 use Illuminate\Http\Request;
-use App\Models\OrderDetail;
-use App\Models\Ingredient;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
-use App\Models\User;
 
 class OrderController extends Controller
 {
-    /**
-     * Add ingredient to cart
-     */
-    public function addToCart(Request $request, $ingredientId)
+    public function showCart()
     {
-        $user = Auth::user();
+        $cart = session()->get('cart', []);
+        $items = collect($cart)->map(function ($item) {
+            return (object) $item;
+        });
+        return view('customer.cart.index', compact('items'));
+    }
 
-        $ingredient = Ingredient::findOrFail($ingredientId);
-        // Get or create cart order
-        $order = Order::firstOrCreate(
-            [
-                'user_id' => $user->id,
-                'status' => 'cart'
-            ],
-            [
-                'total_price' => 0
-            ]
-        );
+    public function addRecipeIngredientsToCart(Request $request, $id)
+    {
+        $request->validate([
+            'serving_order' => 'required|integer|min:1'
+        ]);
 
-        // Check if item already exists in cart
-        $item = OrderDetail::where('order_id', $order->id)
-            ->where('ingredient_id', $ingredient->id)
-            ->where('status', 'cart')
-            ->first();
+        $recipe = DB::table('recipes')->where('id', $id)->first();
+        $recipeingredients = DB::table('recipe_ingredients')->where('recipe_id', $id)->get();
 
-        if ($item) {
-            $item->quantity += 1;
-            $item->save();
-        } else {
-            OrderDetail::create([
-                'order_id' => $order->id,
-                'ingredient_id' => $ingredient->id,
-                'quantity' => 1,
-                'price' => $ingredient->price,
-                'status' => 'cart'
+        if (!$recipe || $recipeingredients->isEmpty()) {
+            return back()->withErrors('Resep atau daftar bahan tidak ditemukan.');
+        }
+
+        $multiplier = $request->serving_order / $recipe->serving;
+        $cart = session()->get('cart', []);
+        $errors = [];
+
+        foreach ($recipeingredients as $ri) {
+            $ingredient = DB::table('ingredients')->where('id', $ri->ingredient_id)->first();
+
+            if (!$ingredient) continue;
+
+            $neededQty = $ri->quantity_required * $multiplier;
+            $prodId = $ingredient->id;
+
+            $currentInCart = isset($cart[$prodId]) ? $cart[$prodId]['quantity'] : 0;
+            if (($currentInCart + $neededQty) > $ingredient->stock_quantity) {
+                $errors[] = "Stok {$ingredient->name} tidak mencukupi untuk porsi tersebut.";
+                continue;
+            }
+
+            if (isset($cart[$prodId])) {
+                $cart[$prodId]['quantity'] += $neededQty;
+            } else {
+                $cart[$prodId] = [
+                    "product_id" => $prodId,
+                    "name"       => $ingredient->name,
+                    "quantity"   => $neededQty,
+                    "price"      => $ingredient->price_per_unit,
+                    "image"      => $ingredient->image_url,
+                    "unit"       => $ingredient->unit
+                ];
+            }
+        }
+
+        session()->put('cart', $cart);
+
+        if (count($errors) > 0) {
+            return redirect()->route('cart.index')->withErrors($errors);
+        }
+
+        return redirect()->route('cart.index')->with('success', 'Bahan-bahan resep berhasil ditambahkan ke keranjang!');
+    }
+
+    public function addToCart(Request $request)
+    {
+        $request->validate([
+            'product_id' => 'required',
+            'quantity'   => 'required|integer|min:1'
+        ]);
+
+        $ingredient = DB::table('ingredients')->where('id', $request->product_id)->first();
+
+        if (!$ingredient) {
+            return back()->withErrors('Produk tidak ditemukan.');
+        }
+
+        $cart = session()->get('cart', []);
+        $id = $request->product_id;
+
+        $currentCartQty = isset($cart[$id]) ? $cart[$id]['quantity'] : 0;
+        $totalRequestedQty = $currentCartQty + $request->quantity;
+
+        if ($totalRequestedQty > $ingredient->stock_quantity) {
+            return back()->withErrors([
+                'quantity' => "Stok tidak mencukupi. Stok tersedia: {$ingredient->stock_quantity}, "
             ]);
         }
 
-        // Update total
-        $this->updateTotal($order);
+        if (isset($cart[$id])) {
+            $cart[$id]['quantity'] = $totalRequestedQty;
+        } else {
+            $cart[$id] = [
+                "product_id" => $id,
+                "name"       => $ingredient->name,
+                "quantity"   => $request->quantity,
+                "price"      => $ingredient->price_per_unit,
+                "image"      => $ingredient->image_url
+            ];
+        }
 
-        return redirect()->back()->with('success', 'Item added to cart');
+        session()->put('cart', $cart);
+        return redirect()->route('cart.index')->with('success', 'Produk ditambahkan ke keranjang!');
     }
 
-    /**
-     * View cart
-     */
-    public function cart()
+    public function updateQty(Request $request, $id)
     {
-        $order = Order::where('user_id', auth()->id())
-            ->where('status', 'cart')
-            ->with('items.ingredient')
-            ->first();
+        $cart = session()->get('cart');
 
-        return view('cart.index', compact('order'));
+        if (isset($cart[$id])) {
+            $ingredient = DB::table('ingredients')->where('id', $id)->first();
+
+            if ($request->action == 'increase') {
+                if ($cart[$id]['quantity'] + 1 > $ingredient->stock_quantity) {
+                    return back()->withErrors('Gagal tambah: Stok sudah mencapai batas maksimal.');
+                }
+                $cart[$id]['quantity']++;
+            } else {
+                $cart[$id]['quantity']--;
+            }
+
+            if ($cart[$id]['quantity'] < 1) unset($cart[$id]);
+
+            session()->put('cart', $cart);
+            return back()->with('success', 'Jumlah diperbarui.');
+        }
+
+        return back()->withErrors('Item tidak ditemukan.');
     }
 
-    /**
-     * Checkout
-     */
-    // public function checkout()
-    // {
-    //     $order = Order::where('user_id', auth()->id())
-    //         ->where('status', 'cart')
-    //         ->with('items')
-    //         ->firstOrFail();
-
-    //     // Update order status
-    //     $order->update(['status' => 'order']);
-
-    //     // Update items status
-    //     $order->items()->update(['status' => 'order']);
-
-    //     return redirect()->route('orders.success')
-    //         ->with('success', 'Order placed successfully');
-    // }
-
-    private function updateTotal(Order $order)
+    public function deleteItem($id)
     {
-        $total = $order->items()
-            ->where('status', 'cart')
-            ->sum(DB::raw('price * quantity'));
+        $cart = session()->get('cart');
 
-        $order->update(['total_price' => $total]);
+        if (isset($cart[$id])) {
+            unset($cart[$id]);
+            session()->put('cart', $cart);
+            return back()->with('success', 'Item dihapus');
+        }
+
+        return back()->withErrors('Gagal menghapus item');
+    }
+
+    public function checkout()
+    {
+        $cart = session()->get('cart');
+        $userId = Auth::id();
+
+        if (!$cart) return back()->withErrors('Keranjang kosong');
+
+        DB::beginTransaction();
+        try {
+            DB::statement('CALL create_orders_procedure(?, ?, ?)', ['pending', 0, $userId]);
+
+            $order = DB::table('orders')->where('user_id', $userId)->latest()->first();
+
+            foreach ($cart as $item) {
+                DB::statement('CALL create_orderdetail_procedure(?, ?, ?, ?)', [
+                    $order->id,
+                    $item['product_id'],
+                    $item['quantity'],
+                    $item['price']
+                ]);
+            }
+
+            DB::commit();
+
+            session()->forget('cart');
+
+            return redirect()->route('orders.index')->with('success', 'Checkout Berhasil!');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->withErrors('Gagal checkout: ' . $e->getMessage());
+        }
     }
 }

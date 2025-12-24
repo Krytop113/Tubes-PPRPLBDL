@@ -11,14 +11,15 @@ return new class extends Migration
             DROP PROCEDURE IF EXISTS create_orderdetail_procedure;
 
             CREATE PROCEDURE create_orderdetail_procedure(
-                IN p_price DECIMAL(10,2),
-                IN p_status VARCHAR(255),
+                IN p_order_id BIGINT,
                 IN p_ingredient_id BIGINT,
-                IN p_order_id BIGINT
+                IN p_quantity INT,
+                IN p_price DECIMAL(10,2)
             )
             BEGIN
                 DECLARE v_error_message VARCHAR(255);
                 DECLARE v_is_error BOOLEAN DEFAULT FALSE;
+                DECLARE v_order_status VARCHAR(50);
 
                 DECLARE CONTINUE HANDLER FOR SQLEXCEPTION
                 BEGIN
@@ -26,13 +27,13 @@ return new class extends Migration
                     SET v_is_error = TRUE;
                 END;
 
-                IF p_price IS NULL OR p_price <= 0 THEN
+                IF p_quantity IS NULL OR p_quantity <= 0 THEN
+                    SIGNAL SQLSTATE '45000'
+                    SET MESSAGE_TEXT = 'Gagal Insert: Quantity tidak valid.';
+
+                ELSEIF p_price IS NULL OR p_price <= 0 THEN
                     SIGNAL SQLSTATE '45000'
                     SET MESSAGE_TEXT = 'Gagal Insert: Harga tidak valid.';
-
-                ELSEIF p_status IS NULL OR TRIM(p_status) = '' THEN
-                    SIGNAL SQLSTATE '45000'
-                    SET MESSAGE_TEXT = 'Gagal Insert: Status tidak boleh kosong.';
 
                 ELSEIF NOT EXISTS (
                     SELECT 1 FROM ingredients WHERE id = p_ingredient_id
@@ -47,26 +48,49 @@ return new class extends Migration
                     SET MESSAGE_TEXT = 'Gagal Insert: Order tidak ditemukan.';
 
                 ELSE
+                    SELECT status
+                    INTO v_order_status
+                    FROM orders
+                    WHERE id = p_order_id;
+
+                    IF v_order_status <> 'cart' THEN
+                        SIGNAL SQLSTATE '45000'
+                        SET MESSAGE_TEXT = 'Gagal Insert: Order bukan cart.';
+                    END IF;
+
+                    IF EXISTS (
+                        SELECT 1
+                        FROM order_details
+                        WHERE order_id = p_order_id
+                          AND ingredient_id = p_ingredient_id
+                          AND status = 'cart'
+                    ) THEN
+                        SIGNAL SQLSTATE '45000'
+                        SET MESSAGE_TEXT = 'Ingredient sudah ada di cart.';
+                    END IF;
+
                     INSERT INTO order_details (
+                        order_id,
+                        ingredient_id,
+                        quantity,
                         price,
                         status,
-                        ingredient_id,
-                        order_id,
                         created_at,
                         updated_at
                     )
                     VALUES (
-                        p_price,
-                        p_status,
-                        p_ingredient_id,
                         p_order_id,
+                        p_ingredient_id,
+                        p_quantity,
+                        p_price,
+                        'cart',
                         NOW(),
                         NOW()
                     );
 
                     IF v_is_error = FALSE THEN
                         SELECT CONCAT(
-                            'Order detail berhasil ditambahkan untuk Order ID ',
+                            'Ingredient berhasil ditambahkan ke cart untuk Order ID ',
                             p_order_id
                         ) AS ResultMessage;
                     END IF;

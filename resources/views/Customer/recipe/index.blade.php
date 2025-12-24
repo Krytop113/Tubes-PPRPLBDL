@@ -4,10 +4,8 @@
     <div class="container">
         <h1 class="mb-4 d-flex justify-content-center">Resep Menu</h1>
 
-        {{-- FILTER FORM --}}
         <form method="GET" action="{{ route('recipes.index') }}" class="mb-4">
 
-            {{-- SEARCH --}}
             <div class="row mb-3 d-flex justify-content-center">
                 <div class="col-md-8">
                     <input type="text" name="search" class="form-control" placeholder="Search recipes..."
@@ -15,7 +13,6 @@
                 </div>
             </div>
 
-            {{-- CATEGORY BUTTONS --}}
             <div class="d-flex flex-wrap gap-2 justify-content-center">
                 @foreach ($categories as $category)
                     @php
@@ -29,7 +26,6 @@
                     </label>
                 @endforeach
 
-                {{-- RESET --}}
                 @if (request()->has('categories') || request()->has('search'))
                     <a href="{{ route('recipes.index') }}" class="btn btn-secondary">
                         Reset
@@ -38,10 +34,9 @@
             </div>
         </form>
 
-        {{-- RECIPE CARDS --}}
         <div class="row">
             @forelse($recipes as $recipe)
-                <div class="col-md-4 mb-4">
+                <div class="col-md-3 mb-3">
                     <div class="card h-100 shadow-sm">
 
                         <span class="badge bg-secondary bg-gradient m-2 align-auto">

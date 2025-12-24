@@ -37,7 +37,7 @@
 
         <div class="row">
             @forelse($ingredients as $ingredient)
-                <div class="col-md-4 mb-4">
+                <div class="col-md-3 mb-3">
                     <div class="card h-100 shadow-sm">
 
                         <span class="badge bg-secondary bg-gradient m-2 align-auto">

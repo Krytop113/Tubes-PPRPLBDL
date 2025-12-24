@@ -20,7 +20,7 @@ use Illuminate\Notifications\Notifiable;
  * @property string $email
  * @property Carbon|null $email_verified_at
  * @property string $password
- * @property string $phone
+ * @property string $phone_number
  * @property int $role_id
  * @property string|null $remember_token
  * @property Carbon|null $created_at
@@ -53,6 +53,7 @@ class User extends Authenticatable
 		'name',
 		'email',
 		'email_verified_at',
+		'phone_number',
 		'password',
 		'role_id',
 		'remember_token'

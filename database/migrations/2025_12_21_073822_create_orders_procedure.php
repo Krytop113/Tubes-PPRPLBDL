@@ -11,7 +11,7 @@ return new class extends Migration
             DROP PROCEDURE IF EXISTS create_orders_procedure;
 
             CREATE PROCEDURE create_orders_procedure(
-                IN p_status VARCHAR(255),
+                IN p_status VARCHAR(50),
                 IN p_total_raw DECIMAL(10,2),
                 IN p_user_id BIGINT
             )
@@ -29,10 +29,6 @@ return new class extends Migration
                     SIGNAL SQLSTATE '45000'
                     SET MESSAGE_TEXT = 'Gagal Insert: Status order tidak boleh kosong.';
 
-                ELSEIF p_total_raw IS NULL OR p_total_raw <= 0 THEN
-                    SIGNAL SQLSTATE '45000'
-                    SET MESSAGE_TEXT = 'Gagal Insert: Total order harus lebih dari nol.';
-
                 ELSEIF p_user_id IS NULL OR p_user_id <= 0 THEN
                     SIGNAL SQLSTATE '45000'
                     SET MESSAGE_TEXT = 'Gagal Insert: ID user tidak valid.';
@@ -43,7 +39,36 @@ return new class extends Migration
                     SIGNAL SQLSTATE '45000'
                     SET MESSAGE_TEXT = 'Gagal Insert: User tidak ditemukan.';
 
+                ELSEIF p_status = 'cart' THEN
+                    IF NOT EXISTS (
+                        SELECT 1 FROM orders
+                        WHERE user_id = p_user_id
+                          AND status = 'cart'
+                    ) THEN
+                        INSERT INTO orders (
+                            status,
+                            total_raw,
+                            user_id,
+                            created_at,
+                            updated_at
+                        )
+                        VALUES (
+                            'cart',
+                            0,
+                            p_user_id,
+                            NOW(),
+                            NOW()
+                        );
+                    END IF;
+
+                    SELECT 'Cart siap digunakan' AS ResultMessage;
                 ELSE
+
+                    IF p_total_raw IS NULL OR p_total_raw <= 0 THEN
+                        SIGNAL SQLSTATE '45000'
+                        SET MESSAGE_TEXT = 'Gagal Insert: Total order harus lebih dari nol.';
+                    END IF;
+
                     INSERT INTO orders (
                         status,
                         total_raw,
@@ -69,7 +94,7 @@ return new class extends Migration
 
                 IF v_is_error = TRUE THEN
                     SELECT CONCAT(
-                        'TRANSAKSI INSERT GAGAL KARENA ERROR SQL: ',
+                        'TRANSAKSI GAGAL KARENA ERROR SQL: ',
                         v_error_message
                     ) AS ErrorDetail;
                 END IF;

@@ -12,7 +12,9 @@ class NotificationController extends Controller
      */
     public function index()
     {
-        //
+        $notifications = Notification::id();
+
+        return view('customer.notification.index', compact('notifications'));
     }
 
     /**

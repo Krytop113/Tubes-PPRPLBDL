@@ -31,18 +31,18 @@ Route::post('/login', function (Request $request) {
     ]);
 });
 
-Route::post('/signup', function (Request $request) {
+Route::post('/register', function (Request $request) {
     $data = $request->validate([
         'name'     => 'required|string',
         'email'    => 'required|email|unique:users',
-        'phone'    => 'required|string',
+        'phone_number'    => 'required|string',
         'password' => 'required|confirmed|min:6',
     ]);
 
     User::create([
         'name'     => $data['name'],
         'email'    => $data['email'],
-        'phone'    => $data['phone'],
+        'phone_number'    => $data['phone_number'],
         'password' => Hash::make($data['password']),
     ]);
 
@@ -91,9 +91,15 @@ Route::middleware(['auth'])->group(function () {
         ->name('recipes.index');
     Route::get('/customer/recipes/{recipe}', [RecipeController::class, 'show'])
         ->name('recipes.show');
+    Route::post('/cart/add-recipe/{id}', [OrderController::class, 'addRecipeIngredientsToCart'])->name('cart.addRecipe');
 
-    Route::get('/customer/cart', [OrderController::class, 'index'])
+    Route::get('/customer/cart', [OrderController::class, 'showCart'])
         ->name('cart.index');
+    Route::get('/cart', [OrderController::class, 'showCart'])->name('cart.index');
+    Route::post('/cart/add', [OrderController::class, 'addToCart'])->name('cart.add');
+    Route::patch('/cart/item/{id}', [OrderController::class, 'updateQty'])->name('cart.update');
+    Route::delete('/cart/item/{id}', [OrderController::class, 'deleteItem'])->name('cart.deleteItem');
+    Route::post('/cart/checkout', [OrderController::class, 'checkout'])->name('cart.checkout');
 
     Route::get('/customer/notification', [OrderController::class, 'index'])
         ->name('notification.index');

@@ -12,14 +12,14 @@ return new class extends Migration
 
             CREATE PROCEDURE edit_orderdetail_procedure(
                 IN p_id BIGINT,
-                IN p_price DECIMAL(10,2),
-                IN p_status VARCHAR(255),
-                IN p_ingredient_id BIGINT,
-                IN p_order_id BIGINT
+                IN p_quantity INT,
+                IN p_price DECIMAL(10,2)
             )
             BEGIN
                 DECLARE v_error_message VARCHAR(255);
                 DECLARE v_is_error BOOLEAN DEFAULT FALSE;
+                DECLARE v_order_id BIGINT;
+                DECLARE v_order_status VARCHAR(50);
 
                 DECLARE CONTINUE HANDLER FOR SQLEXCEPTION
                 BEGIN
@@ -37,36 +37,43 @@ return new class extends Migration
                     SIGNAL SQLSTATE '45000'
                     SET MESSAGE_TEXT = 'Gagal Update: Order Detail tidak ditemukan.';
 
-                ELSEIF p_ingredient_id IS NOT NULL AND NOT EXISTS (
-                    SELECT 1 FROM ingredients WHERE id = p_ingredient_id
-                ) THEN
+                ELSEIF p_quantity IS NULL OR p_quantity <= 0 THEN
                     SIGNAL SQLSTATE '45000'
-                    SET MESSAGE_TEXT = 'Gagal Update: Ingredient tidak ditemukan.';
+                    SET MESSAGE_TEXT = 'Gagal Update: Quantity tidak valid.';
 
-                ELSEIF p_order_id IS NOT NULL AND NOT EXISTS (
-                    SELECT 1 FROM orders WHERE id = p_order_id
-                ) THEN
+                ELSEIF p_price IS NULL OR p_price <= 0 THEN
                     SIGNAL SQLSTATE '45000'
-                    SET MESSAGE_TEXT = 'Gagal Update: Order tidak ditemukan.';
+                    SET MESSAGE_TEXT = 'Gagal Update: Harga tidak valid.';
 
                 ELSE
+                    SELECT od.order_id, o.status
+                    INTO v_order_id, v_order_status
+                    FROM order_details od
+                    JOIN orders o ON o.id = od.order_id
+                    WHERE od.id = p_id;
+
+                    IF v_order_status <> 'cart' THEN
+                        SIGNAL SQLSTATE '45000'
+                        SET MESSAGE_TEXT = 'Gagal Update: Order bukan cart.';
+                    END IF;
+
+
                     UPDATE order_details
                     SET
-                        price = IFNULL(p_price, price),
-                        status = IFNULL(p_status, status),
-                        ingredient_id = IFNULL(p_ingredient_id, ingredient_id),
-                        order_id = IFNULL(p_order_id, order_id),
+                        quantity   = p_quantity,
+                        price      = p_price,
                         updated_at = NOW()
                     WHERE id = p_id;
 
                     IF v_is_error = FALSE THEN
                         SELECT CONCAT(
-                            'Order Detail ID ',
+                            'Cart item ID ',
                             p_id,
                             ' berhasil diperbarui'
                         ) AS ResultMessage;
                     END IF;
                 END IF;
+
 
                 IF v_is_error = TRUE THEN
                     SELECT CONCAT(
