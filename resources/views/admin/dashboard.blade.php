@@ -6,7 +6,7 @@
 
 <section class="hero">
     <div class="hero-content">
-        <h1>Kualitas Bumbu Terbaik</h1>
+        <h1>ADMIN MEMEK</h1>
         <p>Rasa otentik untuk masakan Anda. Bergabunglah dengan ribuan pelanggan kami.</p>
 
         <div style="margin-top:20px">

@@ -1,28 +1,22 @@
 <?php
 
 namespace App\Http\Controllers;
-
-use Illuminate\Http\Request;
+use App\Models\Ingredient;
+use App\Models\Recipe;
+use App\Http\Controllers\Controller;
 
 class HomeController extends Controller
 {
-    /**
-     * Create a new controller instance.
-     *
-     * @return void
-     */
-    public function __construct()
-    {
-        $this->middleware('auth');
-    }
+    // public function __construct()
+    // {
+    //     $this->middleware(['auth', 'role:customer']);
+    // }
 
-    /**
-     * Show the application dashboard.
-     *
-     * @return \Illuminate\Contracts\Support\Renderable
-     */
     public function index()
     {
-        return view('home');
+        $ingredients = Ingredient::inRandomOrder()->limit(3)->get();
+        $recipes = Recipe::inRandomOrder()->limit(3)->get();
+
+        return view('customer.home', compact('ingredients', 'recipes'));
     }
 }

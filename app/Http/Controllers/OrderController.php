@@ -4,62 +4,98 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use Illuminate\Http\Request;
+use App\Models\OrderDetail;
+use App\Models\Ingredient;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
+use App\Models\User;
 
 class OrderController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Add ingredient to cart
      */
-    public function index()
+    public function addToCart(Request $request, $ingredientId)
     {
-        //
+        $user = Auth::user();
+
+        $ingredient = Ingredient::findOrFail($ingredientId);
+        // Get or create cart order
+        $order = Order::firstOrCreate(
+            [
+                'user_id' => $user->id,
+                'status' => 'cart'
+            ],
+            [
+                'total_price' => 0
+            ]
+        );
+
+        // Check if item already exists in cart
+        $item = OrderDetail::where('order_id', $order->id)
+            ->where('ingredient_id', $ingredient->id)
+            ->where('status', 'cart')
+            ->first();
+
+        if ($item) {
+            $item->quantity += 1;
+            $item->save();
+        } else {
+            OrderDetail::create([
+                'order_id' => $order->id,
+                'ingredient_id' => $ingredient->id,
+                'quantity' => 1,
+                'price' => $ingredient->price,
+                'status' => 'cart'
+            ]);
+        }
+
+        // Update total
+        $this->updateTotal($order);
+
+        return redirect()->back()->with('success', 'Item added to cart');
     }
 
     /**
-     * Show the form for creating a new resource.
+     * View cart
      */
-    public function create()
+    public function cart()
     {
-        //
+        $order = Order::where('user_id', auth()->id())
+            ->where('status', 'cart')
+            ->with('items.ingredient')
+            ->first();
+
+        return view('cart.index', compact('order'));
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Checkout
      */
-    public function store(Request $request)
-    {
-        //
-    }
+    // public function checkout()
+    // {
+    //     $order = Order::where('user_id', auth()->id())
+    //         ->where('status', 'cart')
+    //         ->with('items')
+    //         ->firstOrFail();
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Order $order)
-    {
-        //
-    }
+    //     // Update order status
+    //     $order->update(['status' => 'order']);
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Order $order)
-    {
-        //
-    }
+    //     // Update items status
+    //     $order->items()->update(['status' => 'order']);
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Order $order)
-    {
-        //
-    }
+    //     return redirect()->route('orders.success')
+    //         ->with('success', 'Order placed successfully');
+    // }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Order $order)
+    private function updateTotal(Order $order)
     {
-        //
+        $total = $order->items()
+            ->where('status', 'cart')
+            ->sum(DB::raw('price * quantity'));
+
+        $order->update(['total_price' => $total]);
     }
 }

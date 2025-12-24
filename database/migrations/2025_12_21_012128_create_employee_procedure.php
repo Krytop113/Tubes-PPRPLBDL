@@ -8,9 +8,9 @@ return new class extends Migration
     public function up(): void
     {
         DB::unprepared("
-            DROP PROCEDURE IF EXISTS SP_TambahKaryawan;
+            DROP PROCEDURE IF EXISTS create_employee_procedure;
 
-            CREATE PROCEDURE SP_TambahKaryawan(
+            CREATE PROCEDURE create_employee_procedure(
                 IN p_nama VARCHAR(255),
                 IN p_email VARCHAR(255),
                 IN p_password VARCHAR(255)
@@ -69,6 +69,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        DB::unprepared('DROP PROCEDURE IF EXISTS SP_TambahKaryawan');
+        DB::unprepared('DROP PROCEDURE IF EXISTS create_employee_procedure');
     }
 };

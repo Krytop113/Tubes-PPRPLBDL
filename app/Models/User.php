@@ -33,7 +33,7 @@ use Illuminate\Notifications\Notifiable;
  *
  * @package App\Models
  */
-class User extends authenticatable
+class User extends Authenticatable
 {
 	use Notifiable;
 	

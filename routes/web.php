@@ -1,16 +1,12 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-
-Route::get('/', function () {
-    return view('welcome');
-});
-
 // Authentication Routes
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+
 Route::get('/login', function () {
     return view('auth.login');
 })->name('login');
@@ -53,14 +49,63 @@ Route::post('/signup', function (Request $request) {
     return redirect()->route('login');
 });
 
-// Home
+
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\SignupController;
+
+// Home Divider
 Route::get('/', function () {
-    return view('home');
+    return view('customer/home');
 });
+Route::get('/', [HomeController::class, 'index'])->name('home');
 
 Auth::routes();
 
-Route::get('/home', function () {
-    return view('home');
-})->middleware('auth')->name('dashboard');
+// Route::get('/home', [HomeController::class, 'index'])->name('home');
 
+// Admin
+// Route::middleware(['auth', 'role:admin'])->group(function () {
+//     Route::get('/admin/dashboard', fn() => view('admin.dashboard'))
+//         ->name('admin.dashboard');
+// });
+
+// Employee
+// Route::middleware(['auth', 'role:employee'])->group(function () {
+//     Route::get('/employee/dashboard', fn() => view('employee.dashboard'))
+//         ->name('employee.dashboard');
+// });
+
+// Customer
+use App\Http\Controllers\IngredientController;
+use App\Http\Controllers\RecipeController;
+use App\Http\Controllers\OrderController;
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/customer/ingredients', [IngredientController::class, 'index'])
+        ->name('ingredients.index');
+    Route::get('/customer/ingredients/{ingredient}', [IngredientController::class, 'show'])
+        ->name('ingredients.show');
+
+    Route::get('/customer/recipes', [RecipeController::class, 'index'])
+        ->name('recipes.index');
+    Route::get('/customer/recipes/{recipe}', [RecipeController::class, 'show'])
+        ->name('recipes.show');
+
+    Route::get('/customer/cart', [OrderController::class, 'index'])
+        ->name('cart.index');
+
+    Route::get('/customer/notification', [OrderController::class, 'index'])
+        ->name('notification.index');
+});
+
+// Route::middleware(['auth', 'role:customer'])->group(function () {
+//     Route::get('/customer/home', fn() => view('customer.home'))
+//         ->name('customer.home');
+
+//     Route::middleware(['auth'])
+//         ->prefix('customer')
+//         ->name('customer.')
+//         ->group(function () {
+//         });
+// });
