@@ -3,65 +3,101 @@
 namespace App\Http\Controllers;
 
 use App\Models\Notification;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class NotificationController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    private static function createNotification(
+        int $userId,
+        string $title,
+        string $subject,
+        string $message
+    ): void {
+        Notification::create([
+            'user_id' => $userId,
+            'title'   => $title,
+            'subject' => $subject,
+            'message' => $message,
+            'date'    => Carbon::now(),
+            'status'  => 'unread',
+        ]);
+    }
+
+    public static function userRegistered(User $user): void
+    {
+        self::createNotification(
+            $user->id,
+            'Welcome!',
+            'Account Registered',
+            'Your account has been successfully registered.'
+        );
+    }
+
+    public static function orderCheckout(int $userId, int $orderId): void
+    {
+        self::createNotification(
+            $userId,
+            'Order Checkout',
+            'Order Successfully Checked Out',
+            "Your order #{$orderId} has been successfully checked out."
+        );
+    }
+
+    public static function orderPending(int $userId, int $orderId): void
+    {
+        self::createNotification(
+            $userId,
+            'Order Pending',
+            'Order Pending Confirmation',
+            "Your order #{$orderId} is currently pending confirmation."
+        );
+    }
+
+    public static function orderProcessing(int $userId, int $orderId): void
+    {
+        self::createNotification(
+            $userId,
+            'Order Processing',
+            'Order Now Being Processed',
+            "Your order #{$orderId} is now being processed."
+        );
+    }
+
     public function index()
     {
-        $notifications = Notification::id();
+        $notifications = Notification::where('user_id', Auth::id())
+            ->orderBy('date', 'desc')
+            ->get();
 
         return view('customer.notification.index', compact('notifications'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function show($id)
     {
-        //
+        $notification = Notification::where('id', $id)
+            ->where('user_id', Auth::id())
+            ->firstOrFail();
+
+        if ($notification->status === 'unread') {
+            $notification->update(['status' => 'read']);
+        }
+
+        return view('customer.notification.read', compact('notification'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function destroy($id)
     {
-        //
-    }
+        DB::statement(
+            'CALL delete_notification(?, ?)',
+            [$id, Auth::id()]
+        );
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Notification $notification)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Notification $notification)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Notification $notification)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Notification $notification)
-    {
-        //
+        return redirect()
+            ->route('customer.notifications')
+            ->with('success', 'Notification deleted successfully.');
     }
 }

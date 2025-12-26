@@ -8,6 +8,8 @@ use Illuminate\Foundation\Auth\RegistersUsers;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Carbon;
+use App\Http\Controllers\NotificationController;
+use Illuminate\Http\Request;
 
 class RegisterController extends Controller
 {
@@ -50,9 +52,9 @@ class RegisterController extends Controller
     protected function validator(array $data)
     {
         return Validator::make($data, [
-            'name' => ['required', 'string', 'max:255'],
+            'name' => ['required', 'string', 'max:255', 'unique:users'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-            'phone_number' => ['required', 'string','min:10', 'max:15','unique:users'],
+            'phone_number' => ['required', 'string', 'min:10', 'max:15', 'unique:users'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ]);
     }
@@ -74,5 +76,10 @@ class RegisterController extends Controller
             'created_at' => Carbon::now(),
             'updated_at' => Carbon::now()
         ]);
+    }
+
+    protected function registered(Request $request, $user)
+    {
+        NotificationController::userRegistered($user);
     }
 }

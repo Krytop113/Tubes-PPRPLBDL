@@ -44,7 +44,7 @@
                             {{ $ingredient->ingredient_category->name }}
                         </span>
 
-                        <img src="{{ asset('storage/' . $ingredient->image_url) }}" class="card-img-top"
+                        <img src="{{ asset('ingredients/' . $ingredient->image_url) }}" class="card-img-top"
                             style="height:200px; object-fit:cover;" alt="{{ $ingredient->name }}">
 
                         <div class="card-body d-flex flex-column">

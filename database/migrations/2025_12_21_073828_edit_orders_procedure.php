@@ -12,9 +12,7 @@ return new class extends Migration
 
             CREATE PROCEDURE edit_orders_procedure(
                 IN p_id BIGINT,
-                IN p_status VARCHAR(255),
-                IN p_total_raw DECIMAL(10,2),
-                IN p_user_id BIGINT
+                IN p_status VARCHAR(255)
             )
             BEGIN
                 DECLARE v_error_message VARCHAR(255);
@@ -36,23 +34,10 @@ return new class extends Migration
                     SIGNAL SQLSTATE '45000'
                     SET MESSAGE_TEXT = 'Gagal Update: Order dengan ID tersebut tidak ditemukan.';
 
-                ELSEIF p_total_raw IS NOT NULL AND p_total_raw <= 0 THEN
-                    SIGNAL SQLSTATE '45000'
-                    SET MESSAGE_TEXT = 'Gagal Update: Total order harus lebih dari nol.';
-
-                ELSEIF p_user_id IS NOT NULL
-                       AND NOT EXISTS (
-                           SELECT 1 FROM users WHERE id = p_user_id
-                       ) THEN
-                    SIGNAL SQLSTATE '45000'
-                    SET MESSAGE_TEXT = 'Gagal Update: User tidak ditemukan.';
-
                 ELSE
                     UPDATE orders
                     SET
                         status = IFNULL(p_status, status),
-                        total_raw = IFNULL(p_total_raw, total_raw),
-                        user_id = IFNULL(p_user_id, user_id),
                         updated_at = NOW()
                     WHERE id = p_id;
 

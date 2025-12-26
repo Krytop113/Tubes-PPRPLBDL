@@ -43,7 +43,7 @@
                         <div class="card-body text-center">
                             <h5 class="card-title">{{ $ingredient->name }}</h5>
                             <p class="card-text">
-                                Rp {{ number_format($ingredient->price, 0, ',', '.') }} / {{ $ingredient->unit }}
+                                Rp {{ number_format($ingredient->price_per_unit, 0, ',', '.') }} / {{ $ingredient->unit }}
                             </p>
                         </div>
                     </div>

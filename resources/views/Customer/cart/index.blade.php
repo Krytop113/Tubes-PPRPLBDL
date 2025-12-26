@@ -130,7 +130,9 @@
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cek Lagi</button>
                     <form action="{{ route('cart.checkout') }}" method="POST">
                         @csrf
-                        <button type="submit" class="btn btn-success px-4">Proses Sekarang</button>
+                        <button type="submit" class="btn btn-success px-4">
+                            Proses Sekarang
+                        </button>
                     </form>
                 </div>
             </div>

@@ -12,8 +12,7 @@ return new class extends Migration
 
             CREATE PROCEDURE edit_orderdetail_procedure(
                 IN p_id BIGINT,
-                IN p_quantity INT,
-                IN p_price DECIMAL(10,2)
+                IN p_status VARCHAR(255)
             )
             BEGIN
                 DECLARE v_error_message VARCHAR(255);
@@ -37,31 +36,11 @@ return new class extends Migration
                     SIGNAL SQLSTATE '45000'
                     SET MESSAGE_TEXT = 'Gagal Update: Order Detail tidak ditemukan.';
 
-                ELSEIF p_quantity IS NULL OR p_quantity <= 0 THEN
-                    SIGNAL SQLSTATE '45000'
-                    SET MESSAGE_TEXT = 'Gagal Update: Quantity tidak valid.';
-
-                ELSEIF p_price IS NULL OR p_price <= 0 THEN
-                    SIGNAL SQLSTATE '45000'
-                    SET MESSAGE_TEXT = 'Gagal Update: Harga tidak valid.';
-
                 ELSE
-                    SELECT od.order_id, o.status
-                    INTO v_order_id, v_order_status
-                    FROM order_details od
-                    JOIN orders o ON o.id = od.order_id
-                    WHERE od.id = p_id;
-
-                    IF v_order_status <> 'cart' THEN
-                        SIGNAL SQLSTATE '45000'
-                        SET MESSAGE_TEXT = 'Gagal Update: Order bukan cart.';
-                    END IF;
-
 
                     UPDATE order_details
                     SET
-                        quantity   = p_quantity,
-                        price      = p_price,
+                        status = IFNULL(p_status, status),
                         updated_at = NOW()
                     WHERE id = p_id;
 

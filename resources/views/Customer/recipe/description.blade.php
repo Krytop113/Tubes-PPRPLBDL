@@ -2,7 +2,7 @@
 
 @section('content')
 
-<div class="container py-4">
+<div class="container">
     <a href="{{ route('recipes.index') }}" class="btn btn-outline-secondary mb-4 border-0">
         <i class="bi bi-arrow-left"></i> Kembali ke Daftar Resep
     </a>

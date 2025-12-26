@@ -83,7 +83,7 @@ return new class extends Migration
                         p_ingredient_id,
                         p_quantity,
                         p_price,
-                        'cart',
+                        'pending',
                         NOW(),
                         NOW()
                     );

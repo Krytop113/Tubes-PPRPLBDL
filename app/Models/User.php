@@ -41,6 +41,7 @@ class User extends Authenticatable
 
 	protected $casts = [
 		'email_verified_at' => 'datetime',
+		'date_of_birth' => 'date',
 		'role_id' => 'int'
 	];
 
@@ -54,6 +55,7 @@ class User extends Authenticatable
 		'email',
 		'email_verified_at',
 		'phone_number',
+		'date_of_birth',
 		'password',
 		'role_id',
 		'remember_token'

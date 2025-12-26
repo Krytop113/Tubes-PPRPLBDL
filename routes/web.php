@@ -53,6 +53,7 @@ Route::post('/register', function (Request $request) {
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\SignupController;
+use App\Http\Controllers\UserController;
 
 // Home Divider
 Route::get('/', function () {
@@ -80,6 +81,8 @@ Auth::routes();
 use App\Http\Controllers\IngredientController;
 use App\Http\Controllers\RecipeController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\CartController;
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/customer/ingredients', [IngredientController::class, 'index'])
@@ -91,19 +94,45 @@ Route::middleware(['auth'])->group(function () {
         ->name('recipes.index');
     Route::get('/customer/recipes/{recipe}', [RecipeController::class, 'show'])
         ->name('recipes.show');
-    Route::post('/cart/add-recipe/{id}', [OrderController::class, 'addRecipeIngredientsToCart'])->name('cart.addRecipe');
+    Route::post('/cart/add-recipe/{id}', [CartController::class, 'addRecipeIngredientsToCart'])
+        ->name('cart.addRecipe');
 
-    Route::get('/customer/cart', [OrderController::class, 'showCart'])
+    Route::get('/customer/cart', [CartController::class, 'showCart'])
         ->name('cart.index');
-    Route::get('/cart', [OrderController::class, 'showCart'])->name('cart.index');
-    Route::post('/cart/add', [OrderController::class, 'addToCart'])->name('cart.add');
-    Route::patch('/cart/item/{id}', [OrderController::class, 'updateQty'])->name('cart.update');
-    Route::delete('/cart/item/{id}', [OrderController::class, 'deleteItem'])->name('cart.deleteItem');
-    Route::post('/cart/checkout', [OrderController::class, 'checkout'])->name('cart.checkout');
+    Route::get('/cart', [CartController::class, 'showCart'])
+        ->name('cart.index');
+    Route::post('/cart/add', [CartController::class, 'addToCart'])
+        ->name('cart.add');
+    Route::patch('/cart/item/{id}', [CartController::class, 'updateQty'])
+        ->name('cart.update');
+    Route::delete('/cart/item/{id}', [CartController::class, 'deleteItem'])
+        ->name('cart.deleteItem');
+    Route::post('/cart/checkout', [CartController::class, 'checkout'])
+        ->name('cart.checkout');
 
-    Route::get('/customer/notification', [OrderController::class, 'index'])
+    Route::get('/customer/notifications', [NotificationController::class, 'index'])
         ->name('notification.index');
+    Route::get('/notifications/{id}', [NotificationController::class, 'show'])
+        ->name('notification.show');
+    Route::delete('/notifications/{id}', [NotificationController::class, 'destroy'])
+        ->name('notification.delete');
+
+    Route::get('/orders', [OrderController::class, 'orders'])
+        ->name('orders.index');
+    Route::get('/orders/{id}', [OrderController::class, 'orderDetail'])
+        ->name('orders.show');
+    Route::put('/orders/{id}/cancel', [OrderController::class, 'cancel'])
+        ->name('orders.cancel');
+
+    Route::post('/orders/{order}/coupon', [OrderController::class, 'applyCoupon'])
+        ->name('orders.applyCoupon');
+
+    Route::get('/profile', [UserController::class, 'editProfile'])
+        ->name('editProfile');
+    Route::patch('/profile', [UserController::class, 'update'])
+        ->name('updateProfile');
 });
+
 
 // Route::middleware(['auth', 'role:customer'])->group(function () {
 //     Route::get('/customer/home', fn() => view('customer.home'))
