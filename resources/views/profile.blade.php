@@ -111,18 +111,18 @@
                         <i class="fa fa-chevron-right small"></i>
                     </a>
 
-                    @if (!$user->email_verified_at)
-                        <form action="" method="POST">
+                    {{-- @if (!$user->email_verified_at)
+                        <form action="{{ route('verification.send') }}" method="POST">
                             @csrf
                             <button type="submit"
                                 class="btn btn-outline-success w-100 mb-3 d-flex justify-content-between align-items-center py-2">
                                 <span>
                                     <i class="fa fa-envelope-circle-check me-2"></i> Verifikasi Email
                                 </span>
-                                <span class="badge bg-success">Kirim Kode</span>
+                                <span class="badge bg-success">Kirim Email</span>
                             </button>
                         </form>
-                    @endif
+                    @endif --}}
 
                     <button type="submit" class="btn btn-primary w-100 fw-bold py-2 mb-3 shadow-sm">
                         Simpan Perubahan

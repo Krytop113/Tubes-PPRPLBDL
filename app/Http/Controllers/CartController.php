@@ -15,7 +15,20 @@ class CartController extends Controller
         $items = collect($cart)->map(function ($item) {
             return (object) $item;
         });
+
         return view('customer.cart.index', compact('items'));
+    }
+
+    private function calculateCartTotal(array &$cart): float
+    {
+        $total = 0;
+
+        foreach ($cart as $key => $item) {
+            $cart[$key]['subtotal'] = $item['price'] * $item['quantity'];
+            $total += $cart[$key]['subtotal'];
+        }
+
+        return $total;
     }
 
     public function addRecipeIngredientsToCart(Request $request, $id)
@@ -54,22 +67,25 @@ class CartController extends Controller
             } else {
                 $cart[$prodId] = [
                     "product_id" => $prodId,
-                    "name" => $ingredient->name,
-                    "quantity" => $neededQty,
-                    "price" => $ingredient->price_per_unit,
-                    "image" => $ingredient->image_url,
-                    "unit" => $ingredient->unit
+                    "name"       => $ingredient->name,
+                    "quantity"   => $neededQty,
+                    "price"      => $ingredient->price_per_unit,
+                    "image"      => $ingredient->image_url,
+                    "unit"       => $ingredient->unit
                 ];
             }
         }
 
+        $cartTotal = $this->calculateCartTotal($cart);
         session()->put('cart', $cart);
+        session()->put('cart_total', $cartTotal);
 
         if (count($errors) > 0) {
             return redirect()->route('cart.index')->withErrors($errors);
         }
 
-        return redirect()->route('cart.index')->with('success', 'Bahan-bahan resep berhasil ditambahkan ke keranjang!');
+        return redirect()->route('cart.index')
+            ->with('success', 'Bahan-bahan resep berhasil ditambahkan ke keranjang!');
     }
 
     public function addToCart(Request $request)
@@ -109,8 +125,12 @@ class CartController extends Controller
             ];
         }
 
+        $cartTotal = $this->calculateCartTotal($cart);
         session()->put('cart', $cart);
-        return redirect()->route('cart.index')->with('success', 'Produk ditambahkan ke keranjang!');
+        session()->put('cart_total', $cartTotal);
+
+        return redirect()->route('cart.index')
+            ->with('success', 'Produk ditambahkan ke keranjang!');
     }
 
     public function updateQty(Request $request, $id)
@@ -129,9 +149,14 @@ class CartController extends Controller
                 $cart[$id]['quantity']--;
             }
 
-            if ($cart[$id]['quantity'] < 1) unset($cart[$id]);
+            if ($cart[$id]['quantity'] < 1) {
+                unset($cart[$id]);
+            }
 
+            $cartTotal = $this->calculateCartTotal($cart);
             session()->put('cart', $cart);
+            session()->put('cart_total', $cartTotal);
+
             return back()->with('success', 'Jumlah diperbarui.');
         }
 
@@ -144,7 +169,11 @@ class CartController extends Controller
 
         if (isset($cart[$id])) {
             unset($cart[$id]);
+
+            $cartTotal = $this->calculateCartTotal($cart);
             session()->put('cart', $cart);
+            session()->put('cart_total', $cartTotal);
+
             return back()->with('success', 'Item dihapus');
         }
 
@@ -160,10 +189,7 @@ class CartController extends Controller
             return back()->withErrors('Keranjang kosong');
         }
 
-        $total = 0;
-        foreach ($cart as $item) {
-            $total += $item['price'] * $item['quantity'];
-        }
+        $total = session()->get('cart_total', 0);
 
         DB::beginTransaction();
         try {
@@ -182,7 +208,7 @@ class CartController extends Controller
                     'CALL create_orderdetail_procedure(?, ?, ?, ?)',
                     [
                         $order->id,
-                        $item['product_id'],                        
+                        $item['product_id'],
                         $item['quantity'],
                         $item['price']
                     ]
@@ -190,7 +216,9 @@ class CartController extends Controller
             }
 
             DB::commit();
-            session()->forget('cart');
+            session()->forget(['cart', 'cart_total']);
+
+            NotificationController::orderProcessing($userId, $order->id);
             return redirect()
                 ->route('orders.index')
                 ->with('success', 'Checkout berhasil');

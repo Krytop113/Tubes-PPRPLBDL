@@ -12,37 +12,6 @@ use App\Models\Order;
 
 class CouponUserController extends Controller
 {
-    public function getCoupon()
-    {
-        $user = Auth::user();
-
-        // if ($user->role !== 'customer') {
-        //     return;
-        // }
-
-        $now = Carbon::now();
-
-        $coupons = Coupon::where('start_date', '<=', $now)
-            ->where('end_date', '>=', $now)
-            ->get();
-
-        foreach ($coupons as $coupon) {
-            $exists = CouponUser::where('coupon_id', $coupon->id)
-                ->where('user_id', $user->id)
-                ->exists();
-
-            if (!$exists) {
-                DB::statement(
-                    'CALL create_couponuser_procedure(?, ?)',
-                    [
-                        $coupon->id,
-                        $user->id
-                    ]
-                );
-            }
-        }
-    }
-
     public function applyCoupon(Request $request, Order $order)
     {
         $request->validate([

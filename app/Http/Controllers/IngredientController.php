@@ -6,87 +6,71 @@ use App\Models\Ingredient;
 use Illuminate\Http\Request;
 use App\Models\Ingredientcategory;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
 
 class IngredientController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index(Request $request)
+
+    // Customer View
+    public function indexcustomer(Request $request)
     {
+        $user = Auth::user();
         $categories = Ingredientcategory::all();
+        $selectedCategory = $request->category;
 
-        $selectedCategories = $request->categories ?? [];
-
-        if ($request->filled('add_category')) {
-            $selectedCategories[] = (int) $request->add_category;
-        }
-        if ($request->filled('remove_category')) {
-            $selectedCategories = array_diff(
-                $selectedCategories,
-                [(int) $request->remove_category]
-            );
-        }
         $ingredients = Ingredient::with('ingredient_category')
-            ->when(!empty($selectedCategories), function ($query) use ($selectedCategories) {
-                $query->whereIn('ingredient_category_id', $selectedCategories);
+            ->when($selectedCategory, function ($query) use ($selectedCategory) {
+                $query->where('ingredient_category_id', $selectedCategory);
             })
             ->when($request->filled('search'), function ($query) use ($request) {
                 $query->where('name', 'like', '%' . $request->search . '%');
             })
-            ->get();
+            ->paginate(8)
+            ->withQueryString();
 
-        return view('customer.ingredients.index', compact(
-            'ingredients',
-            'categories'
-        ))->with('selectedCategories', $selectedCategories);
+        return view('customer.ingredients.index', compact('ingredients', 'categories', 'user', 'selectedCategory'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
     public function show(Ingredient $ingredient)
     {
-        return view('customer.ingredients.description', compact('ingredient'));
+        $user = Auth::user();
+
+        return view('customer.ingredients.description', compact('ingredient', 'user'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Ingredient $ingredient)
+
+    // Control Panel View
+    public function indexcontrol(Request $request)
     {
-        //
+        $categories = Ingredientcategory::all();
+
+        $selectedCategory = $request->query('category');
+        $search = $request->query('search');
+
+        $ingredients = Ingredient::with('ingredient_category')
+            ->when($selectedCategory, function ($query) use ($selectedCategory) {
+                $query->where('ingredient_category_id', $selectedCategory);
+            })
+            ->when($search, function ($query) use ($search) {
+                $query->where('name', 'like', '%' . $search . '%');
+            })
+            ->latest()
+            ->get();
+
+        return view('control.ingredients.index', compact('ingredients', 'categories', 'selectedCategory', 'search'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Ingredient $ingredient)
+    public function create()
     {
-        //
+        Auth::user();
+        return view('control.ingredients.create');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Ingredient $ingredient)
-    {
-        //
-    }
+    public function store(Request $request) {}
+
+    public function edit(Ingredient $ingredient) {}
+
+    public function update(Request $request, Ingredient $ingredient) {}
+
+    public function destroy(Ingredient $ingredient) {}
 }

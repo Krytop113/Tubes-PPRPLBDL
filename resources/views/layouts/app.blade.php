@@ -21,7 +21,7 @@
     <div id="app" class="d-flex flex-column flex-grow-1">
         <nav class="navbar navbar-expand-md navbar-light bg-white shadow-sm sticky-top">
             <div class="container">
-                <a class="navbar-brand" href="{{ url('/') }}">
+                <a class="navbar-brand" href="{{ route('home') }}">
                     <img src="{{ asset('favicon.ico') }}" alt="KriukKriuk Logo" height="32">
                     <span class="fw-bold">KriukKriuk</span>
                 </a>
@@ -102,6 +102,10 @@
                                         Orders
                                     </a>
 
+                                    <a class="dropdown-item" href="{{ route('coupons.index') }}">
+                                        Coupons
+                                    </a>
+
                                     <a class="dropdown-item" href="{{ route('editProfile') }}">
                                         Profile
                                     </a>
@@ -117,13 +121,16 @@
                                 </div>
                             </li>
                         @endguest
-
                     </ul>
                 </div>
             </div>
         </nav>
 
         <main class="flex-grow-1 py-4">
+            {{-- @if ($user->role->name == 'admin')
+                <h3 class="flex text-align-middle">sedang melihat sebagai Customer</h3>
+            @endif --}}
+
             @yield('content')
         </main>
 

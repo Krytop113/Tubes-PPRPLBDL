@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Http\Request;
 use App\Http\Controllers\CouponUserController;
+use Illuminate\Support\Facades\Auth;
 
 class LoginController extends Controller
 {
@@ -40,8 +41,13 @@ class LoginController extends Controller
         $this->middleware('auth')->only('logout');
     }
 
-    protected function authenticated(Request $request, $user)
+    protected function redirectTo()
     {
-        app(CouponUserController::class)->getCoupon();
+        $role = Auth::user()->role->name;
+
+        return match ($role) {
+            'admin', 'employee' => '/control/dashboard',
+            default             => '/',
+        };
     }
 }

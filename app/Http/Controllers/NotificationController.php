@@ -43,17 +43,7 @@ class NotificationController extends Controller
             $userId,
             'Order Checkout',
             'Order Successfully Checked Out',
-            "Your order #{$orderId} has been successfully checked out."
-        );
-    }
-
-    public static function orderPending(int $userId, int $orderId): void
-    {
-        self::createNotification(
-            $userId,
-            'Order Pending',
-            'Order Pending Confirmation',
-            "Your order #{$orderId} is currently pending confirmation."
+            "Your order #{$orderId} has been successfully checked out and waiting for processing."
         );
     }
 
@@ -64,6 +54,16 @@ class NotificationController extends Controller
             'Order Processing',
             'Order Now Being Processed',
             "Your order #{$orderId} is now being processed."
+        );
+    }
+
+    public static function orderCancel(int $userId, int $orderId): void
+    {
+        self::createNotification(
+            $userId,
+            'Order Cancelled',
+            'Order Cancelled',
+            "Your order #{$orderId} has been cancelled."
         );
     }
 

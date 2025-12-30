@@ -8,12 +8,10 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use App\Models\CouponUser;
 use App\Models\OrderDetail;
-use Carbon\Carbon;
-
 
 class OrderController extends Controller
 {
-
+    // Customer View
     public function orders(Request $request)
     {
         $status = $request->query('status');
@@ -85,8 +83,22 @@ class OrderController extends Controller
             );
         }
 
+        NotificationController::orderCancel(Auth::id(), $id);
+
         return redirect()
             ->route('orders.index')
             ->with('success', 'Order berhasil dibatalkan');
+    }
+
+    // Control Panel View
+    public function indexcontrol(Request $request){
+        $orders = DB::table('orders')
+            ->when($request->filled('status'), function ($query) use ($request) {
+                $query->where('status', $request->status);
+            })
+            ->orderByDesc('created_at')
+            ->get();
+
+        return view('control.orders.index', compact('orders'));
     }
 }

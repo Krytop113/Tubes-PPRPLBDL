@@ -6,6 +6,17 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use App\Http\Controllers\IngredientController;
+use App\Http\Controllers\RecipeController;
+use App\Http\Controllers\OrderController;
+use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\CartController;
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\SignupController;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\CouponController;
 
 Route::get('/login', function () {
     return view('auth.login');
@@ -17,7 +28,7 @@ Route::get('/signup', function () {
 
 Route::post('/login', function (Request $request) {
     $credentials = $request->validate([
-        'email'    => 'required|email',
+        'email' => 'required|email',
         'password' => 'required'
     ]);
 
@@ -33,114 +44,119 @@ Route::post('/login', function (Request $request) {
 
 Route::post('/register', function (Request $request) {
     $data = $request->validate([
-        'name'     => 'required|string',
-        'email'    => 'required|email|unique:users',
-        'phone_number'    => 'required|string',
+        'name' => 'required|string',
+        'email' => 'required|email|unique:users',
+        'phone_number' => 'required|string',
         'password' => 'required|confirmed|min:6',
     ]);
 
     User::create([
-        'name'     => $data['name'],
-        'email'    => $data['email'],
-        'phone_number'    => $data['phone_number'],
+        'name' => $data['name'],
+        'email' => $data['email'],
+        'phone_number' => $data['phone_number'],
         'password' => Hash::make($data['password']),
     ]);
 
     return redirect()->route('login');
 });
 
-
-use App\Http\Controllers\HomeController;
-use App\Http\Controllers\Auth\LoginController;
-use App\Http\Controllers\Auth\SignupController;
-use App\Http\Controllers\UserController;
+// Route::post('/email/verification-notification', function (Request $request) {
+//     $request->user()->sendEmailVerificationNotification();
+//     return back()->with('success', 'Email verifikasi telah dikirim.');
+// })->middleware(['auth', 'throttle:6,1'])->name('verification.send');
 
 // Home Divider
-Route::get('/', function () {
-    return view('customer/home');
-});
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
 Auth::routes();
 
-// Route::get('/home', [HomeController::class, 'index'])->name('home');
+// Control Panel
+Route::middleware(['auth', 'role:admin,employee'])
+    ->group(function () {
+        Route::get('control/dashboard', [DashboardController::class, 'index'])
+            ->name('dashboard');
 
-// Admin
-// Route::middleware(['auth', 'role:admin'])->group(function () {
-//     Route::get('/admin/dashboard', fn() => view('admin.dashboard'))
-//         ->name('admin.dashboard');
-// });
+        Route::get('/control/ingredients', [IngredientController::class, 'indexcontrol'])
+            ->name('control.ingredients.index');
+        Route::get('/control/ingredients/create', [IngredientController::class, 'create'])
+            ->name('control.ingredients.create');
+        Route::get('/control/ingredients/{ingredient}', [IngredientController::class, 'edit'])
+            ->name('control.ingredients.edit');
 
-// Employee
-// Route::middleware(['auth', 'role:employee'])->group(function () {
-//     Route::get('/employee/dashboard', fn() => view('employee.dashboard'))
-//         ->name('employee.dashboard');
-// });
+        Route::get('/control/recipes', [RecipeController::class, 'indexcontrol'])
+            ->name('control.recipes.index');
+        Route::get('/control/recipes/create', [RecipeController::class, 'create'])
+            ->name('control.recipes.create');
+        Route::get('/control/recipes/{recipe}', [RecipeController::class, 'edit'])
+            ->name('control.recipes.edit');
 
-// Customer
-use App\Http\Controllers\IngredientController;
-use App\Http\Controllers\RecipeController;
-use App\Http\Controllers\OrderController;
-use App\Http\Controllers\NotificationController;
-use App\Http\Controllers\CartController;
+        Route::get('/control/orders', [OrderController::class, 'indexcontrol'])
+            ->name('control.orders.index');
+        Route::get('/control/orders/{id}', [OrderController::class, 'recap'])
+            ->name('control.orders.recap');
 
-Route::middleware(['auth'])->group(function () {
-    Route::get('/customer/ingredients', [IngredientController::class, 'index'])
-        ->name('ingredients.index');
-    Route::get('/customer/ingredients/{ingredient}', [IngredientController::class, 'show'])
-        ->name('ingredients.show');
+        Route::get('/control/coupons', [CouponController::class, 'indexcontrol'])
+            ->name('control.coupons.index');
+        Route::get('/control/coupons/create', [CouponController::class, 'create'])
+            ->name('control.coupons.create');
+        Route::get('/control/coupons/{coupon}', [CouponController::class, 'edit'])
+            ->name('control.coupons.edit');
+    });
 
-    Route::get('/customer/recipes', [RecipeController::class, 'index'])
-        ->name('recipes.index');
-    Route::get('/customer/recipes/{recipe}', [RecipeController::class, 'show'])
-        ->name('recipes.show');
-    Route::post('/cart/add-recipe/{id}', [CartController::class, 'addRecipeIngredientsToCart'])
-        ->name('cart.addRecipe');
+// Customer Panel
+Route::middleware(['auth', 'role:customer,employee,admin'])
+    ->group(function () {
+        Route::get('/home', [HomeController::class, 'index']);
 
-    Route::get('/customer/cart', [CartController::class, 'showCart'])
-        ->name('cart.index');
-    Route::get('/cart', [CartController::class, 'showCart'])
-        ->name('cart.index');
-    Route::post('/cart/add', [CartController::class, 'addToCart'])
-        ->name('cart.add');
-    Route::patch('/cart/item/{id}', [CartController::class, 'updateQty'])
-        ->name('cart.update');
-    Route::delete('/cart/item/{id}', [CartController::class, 'deleteItem'])
-        ->name('cart.deleteItem');
-    Route::post('/cart/checkout', [CartController::class, 'checkout'])
-        ->name('cart.checkout');
+        Route::get('/customer/ingredients', [IngredientController::class, 'indexcustomer'])
+            ->name('ingredients.index');
+        Route::get('/customer/ingredients/{ingredient}', [IngredientController::class, 'show'])
+            ->name('ingredients.show');
 
-    Route::get('/customer/notifications', [NotificationController::class, 'index'])
-        ->name('notification.index');
-    Route::get('/notifications/{id}', [NotificationController::class, 'show'])
-        ->name('notification.show');
-    Route::delete('/notifications/{id}', [NotificationController::class, 'destroy'])
-        ->name('notification.delete');
+        Route::get('/customer/recipes', [RecipeController::class, 'indexcustomer'])
+            ->name('recipes.index');
+        Route::get('/customer/recipes/{recipe}', [RecipeController::class, 'show'])
+            ->name('recipes.show');
+        Route::post('/cart/add-recipe/{id}', [CartController::class, 'addRecipeIngredientsToCart'])
+            ->name('cart.addRecipe');
 
-    Route::get('/orders', [OrderController::class, 'orders'])
-        ->name('orders.index');
-    Route::get('/orders/{id}', [OrderController::class, 'orderDetail'])
-        ->name('orders.show');
-    Route::put('/orders/{id}/cancel', [OrderController::class, 'cancel'])
-        ->name('orders.cancel');
+        Route::get('/customer/cart', [CartController::class, 'showCart'])
+            ->name('cart.index');
+        Route::get('/cart', [CartController::class, 'showCart'])
+            ->name('cart.index');
+        Route::post('/cart/add', [CartController::class, 'addToCart'])
+            ->name('cart.add');
+        Route::patch('/cart/item/{id}', [CartController::class, 'updateQty'])
+            ->name('cart.update');
+        Route::delete('/cart/item/{id}', [CartController::class, 'deleteItem'])
+            ->name('cart.deleteItem');
+        Route::post('/cart/checkout', [CartController::class, 'checkout'])
+            ->name('cart.checkout');
 
-    Route::post('/orders/{order}/coupon', [OrderController::class, 'applyCoupon'])
-        ->name('orders.applyCoupon');
+        Route::get('/customer/notifications', [NotificationController::class, 'index'])
+            ->name('notification.index');
+        Route::get('/notifications/{id}', [NotificationController::class, 'show'])
+            ->name('notification.show');
+        Route::delete('/notifications/{id}', [NotificationController::class, 'destroy'])
+            ->name('notification.delete');
 
-    Route::get('/profile', [UserController::class, 'editProfile'])
-        ->name('editProfile');
-    Route::patch('/profile', [UserController::class, 'update'])
-        ->name('updateProfile');
-});
+        Route::get('/orders', [OrderController::class, 'orders'])
+            ->name('orders.index');
+        Route::get('/orders/{id}', [OrderController::class, 'orderDetail'])
+            ->name('orders.show');
+        Route::put('/orders/{id}/cancel', [OrderController::class, 'cancel'])
+            ->name('orders.cancel');
 
+        Route::post('/orders/{order}/coupon', [OrderController::class, 'applyCoupon'])
+            ->name('orders.applyCoupon');
 
-// Route::middleware(['auth', 'role:customer'])->group(function () {
-//     Route::get('/customer/home', fn() => view('customer.home'))
-//         ->name('customer.home');
+        Route::get('/profile', [UserController::class, 'editProfile'])
+            ->name('editProfile');
+        Route::patch('/profile', [UserController::class, 'update'])
+            ->name('updateProfile');
 
-//     Route::middleware(['auth'])
-//         ->prefix('customer')
-//         ->name('customer.')
-//         ->group(function () {
-//         });
-// });
+        Route::get('/coupons', [CouponController::class, 'index'])
+            ->name('coupons.index');
+        Route::post('/coupons/claim/{id}', [CouponController::class, 'claim'])
+            ->name('coupons.claim');
+    });
