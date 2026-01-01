@@ -66,10 +66,11 @@
                 </div>
             @empty
                 <div class="col-12 text-center py-5">
-                    <img src="https://illustrations.popsy.co/gray/search.svg" alt="Not Found" style="width: 150px;"
-                        class="mb-3 opacity-50">
-                    <p class="text-muted">Bahan tidak ditemukan.</p>
+                    <i class="bi bi-x-circle display-1 text-muted opacity-25"></i>
+                    <h5 class="text-muted">Bahan tidak ditemukan.</h5>
+                    <p class="small text-muted">Coba gunakan kata kunci lain atau pilih kategori berbeda.</p>
                 </div>
+
             @endforelse
 
             <div class="d-flex justify-content-center mt-5">

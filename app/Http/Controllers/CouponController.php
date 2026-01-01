@@ -36,7 +36,7 @@ class CouponController extends Controller
         $userId = Auth::id();
 
         try {
-            $result = DB::select("CALL create_couponuser_procedure(?, ?)", [$userId, $id]);
+            DB::select("CALL create_couponuser_procedure(?, ?)", [$userId, $id]);
 
             return redirect()->back()->with('success', 'Kupon berhasil diklaim!');
         } catch (Exception $e) {
@@ -45,7 +45,6 @@ class CouponController extends Controller
             return redirect()->back()->with('error', 'Gagal klaim: ' . $errorMessage);
         }
     }
-
 
     // Control Panel View
     public function indexcontrol()
@@ -59,38 +58,21 @@ class CouponController extends Controller
         //
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
         //
     }
 
-    /**
-     * Display the specified resource.
-     */
-
-
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(Coupon $coupon)
     {
         //
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, Coupon $coupon)
     {
         //
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Coupon $coupon)
     {
         //

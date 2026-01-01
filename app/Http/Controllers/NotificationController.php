@@ -4,10 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Notification;
 use App\Models\User;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Exception;
 
 class NotificationController extends Controller
 {
@@ -17,13 +17,13 @@ class NotificationController extends Controller
         string $subject,
         string $message
     ): void {
-        Notification::create([
-            'user_id' => $userId,
-            'title'   => $title,
-            'subject' => $subject,
-            'message' => $message,
-            'date'    => Carbon::now(),
-            'status'  => 'unread',
+        DB::select("CALL create_notification_procedure(?, ?, ?, ?, ?, ?)", [
+            $title,
+            $subject,
+            $message,
+            Carbon::now(),
+            'unread',
+            $userId
         ]);
     }
 
@@ -67,6 +67,7 @@ class NotificationController extends Controller
         );
     }
 
+
     public function index()
     {
         $notifications = Notification::where('user_id', Auth::id())
@@ -91,13 +92,21 @@ class NotificationController extends Controller
 
     public function destroy($id)
     {
-        DB::statement(
-            'CALL delete_notification(?, ?)',
-            [$id, Auth::id()]
-        );
+        try {
+            $results = DB::select('CALL delete_notification_procedure(?, ?)', [
+                $id,
+                Auth::id()
+            ]);
 
-        return redirect()
-            ->route('customer.notifications')
-            ->with('success', 'Notification deleted successfully.');
+            $message = $results[0]->ResultMessage ?? $results[0]->ErrorDetail ?? 'Notification deleted successfully.';
+
+            return redirect()
+                ->route('notification.index')
+                ->with('success', $message);
+        } catch (Exception $e) {
+            return redirect()
+                ->back()
+                ->with('error', 'Gagal menghapus notifikasi: ' . $e->getMessage());
+        }
     }
 }

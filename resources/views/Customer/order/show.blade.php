@@ -4,37 +4,29 @@
     <div class="container py-5">
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{ route('orders.index') }}"
-                        class="text-decoration-none">Orders</a></li>
-                <li class="breadcrumb-item active text-truncate" style="max-width: 200px;">{{ $order->id }}
-                </li>
+                <li class="breadcrumb-item"><a href="{{ route('orders.index') }}" class="text-decoration-none">Orders</a></li>
+                <li class="breadcrumb-item active text-truncate" style="max-width: 200px;">{{ $order->id }}</li>
             </ol>
         </nav>
 
-        <div class="mb-8">
+        <div class="mb-4">
             <a href="{{ route('orders.index') }}" class="text-decoration-none text-muted small fw-bold">
                 <i class="fas fa-arrow-left me-1"></i> KEMBALI KE DAFTAR PESANAN
             </a>
             <div class="d-flex justify-content-between align-items-center mt-2">
                 <h3 class="fw-bold mb-0">Detail Order <span class="text-primary">#{{ $order->id }}</span></h3>
                 <div>
-                    @switch($order->status)
-                        @case('pending')
-                            <span class="badge rounded-pill bg-warning-subtle text-warning px-3">Pending</span>
-                        @break
-
-                        @case('paid')
-                            <span class="badge rounded-pill bg-info-subtle text-info px-3">Paid</span>
-                        @break
-
-                        @case('order')
-                            <span class="badge rounded-pill bg-success-subtle text-success px-3">Selesai</span>
-                        @break
-
-                        @case('cancel')
-                            <span class="badge rounded-pill bg-danger-subtle text-danger px-3">Dibatalkan</span>
-                        @break
-                    @endswitch
+                    @php
+                        $statusBadge = [
+                            'pending' => 'bg-warning-subtle text-warning',
+                            'paid' => 'bg-info-subtle text-info',
+                            'done' => 'bg-success-subtle text-success',
+                            'cancel' => 'bg-danger-subtle text-danger',
+                        ];
+                    @endphp
+                    <span class="badge rounded-pill {{ $statusBadge[$order->status] ?? 'bg-secondary' }} px-3 py-2">
+                        {{ ucfirst($order->status) }}
+                    </span>
                 </div>
             </div>
         </div>
@@ -47,7 +39,7 @@
                     </div>
                     <div class="table-responsive p-3">
                         <table class="table align-middle">
-                            <thead class="text-muted small uppercase">
+                            <thead class="text-muted small text-uppercase">
                                 <tr>
                                     <th class="border-0 ps-3">Produk</th>
                                     <th class="border-0">Harga</th>
@@ -79,77 +71,122 @@
                     <div class="card-body p-4">
                         <h6 class="fw-bold mb-3">Ringkasan Pembayaran</h6>
 
-                        <div class="d-flex justify-content-between mb-2">
-                            <span class="text-muted">Tanggal Pesan</span>
-                            <span
-                                class="fw-medium small text-end">{{ \Carbon\Carbon::parse($order->created_at)->format('d M Y, H:i') }}</span>
-                        </div>
+                        <form action="{{ route('payment') }}" method="POST" id="paymentForm">
+                            @csrf
+                            <input type="hidden" name="order_id" value="{{ $order->id }}">
 
-                        <hr class="text-muted opacity-25">
-
-                        <div class="d-flex justify-content-between mb-2">
-                            <span class="text-muted">Total Awal</span>
-                            <span class="fw-bold text-dark">Rp {{ number_format($order->total_raw, 0, ',', '.') }}</span>
-                        </div>
-
-                        <div id="discountSection" class="d-none">
-                            <div class="d-flex justify-content-between mb-2">
-                                <span class="text-success">Potongan Kupon</span>
-                                <span class="text-success fw-bold" id="totalPotongan">- Rp 0</span>
+                            <div class="d-flex justify-content-between mb-2 small">
+                                <span class="text-muted">Total Belanja</span>
+                                <span class="fw-bold text-dark">Rp
+                                    {{ number_format($order->total_raw, 0, ',', '.') }}</span>
                             </div>
-                            <div class="d-flex justify-content-between mb-2 border-top pt-2 mt-2">
-                                <span class="fw-bold text-dark">Total Akhir</span>
-                                <span class="fw-bold text-primary fs-5">Rp <span id="totalAkhir">0</span></span>
-                            </div>
-                        </div>
 
-                        @if ($order->status === 'pending')
-                            <div class="mt-4">
-                                <h6 class="fw-bold small mb-2 text-uppercase">Pilih Kupon Hemat</h6>
-                                @if ($couponUsers->isEmpty())
-                                    <div class="bg-light p-2 rounded text-center small text-muted">
-                                        Tidak ada kupon tersedia
+                            <div class="d-flex justify-content-between mb-2 small">
+                                <span class="text-muted">Ongkos Kirim (Bandung Area)</span>
+                                <span class="fw-bold text-dark" id="ongkirDisplay">Rp 0</span>
+                            </div>
+
+                            <div id="discountSection" class="d-none">
+                                <div class="d-flex justify-content-between mb-2 small">
+                                    <span class="text-success">Potongan Kupon</span>
+                                    <span class="text-success fw-bold" id="totalPotongan">- Rp 0</span>
+                                </div>
+                            </div>
+
+                            <hr class="text-muted opacity-25">
+
+                            <div class="d-flex justify-content-between mb-4">
+                                <span class="fw-bold text-dark">Total Bayar</span>
+                                <span class="fw-bold text-primary fs-5">Rp <span
+                                        id="totalAkhirDisplay">{{ number_format($order->total_raw, 0, ',', '.') }}</span></span>
+                            </div>
+
+                            @if ($order->status === 'pending')
+                                <div class="mb-3 bg-light p-3 rounded-3 border border-primary-subtle">
+                                    <h6 class="fw-bold x-small text-uppercase mb-3 text-primary"><i
+                                            class="fas fa-truck me-1"></i> Pengiriman Khusus Bandung</h6>
+
+                                    <div class="mb-2">
+                                        <label class="x-small text-muted fw-bold">KECAMATAN TUJUAN</label>
+                                        <select name="destination_area" id="destinationArea"
+                                            class="form-select form-select-sm" required>
+                                            <option value="" data-cost="0">-- Pilih Kecamatan --</option>
+                                            <optgroup label="Zona 1 (Dekat)">
+                                                <option value="Coblong" data-cost="10000">Coblong (Dago, Sadang Serang)
+                                                </option>
+                                                <option value="Lengkong" data-cost="10000">Lengkong (Burangrang, Malabar)
+                                                </option>
+                                                <option value="Cibeunying" data-cost="12000">Cibeunying Kidul/Kaler</option>
+                                            </optgroup>
+                                            <optgroup label="Zona 2 (Sedang)">
+                                                <option value="Sukajadi" data-cost="15000">Sukajadi (Pasteur, PVJ)</option>
+                                                <option value="Antapani" data-cost="18000">Antapani</option>
+                                                <option value="Arcamanik" data-cost="20000">Arcamanik</option>
+                                            </optgroup>
+                                            <optgroup label="Zona 3 (Jauh)">
+                                                <option value="Cibiru" data-cost="25000">Cibiru / Ujung Berung</option>
+                                                <option value="Gedebage" data-cost="25000">Gedebage</option>
+                                            </optgroup>
+                                        </select>
                                     </div>
-                                @else
-                                    <form action="{{ route('orders.applyCoupon', $order->id) }}" method="POST">
-                                        @csrf
-                                        <div class="input-group input-group-sm mb-2">
-                                            <select name="coupon_user_id" class="form-select border-primary-subtle"
-                                                id="couponSelect" required>
-                                                <option value="">-- Pilih Kupon --</option>
-                                                @foreach ($couponUsers as $cu)
-                                                    <option value="{{ $cu->id }}"
-                                                        data-discount="{{ $cu->coupon->discount_percentage }}">
-                                                        {{ $cu->coupon->title }} ({{ $cu->coupon->discount_percentage }}%)
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                            <button class="btn btn-primary" type="submit">Gunakan</button>
-                                        </div>
-                                        @error('coupon_user_id')
-                                            <small class="text-danger d-block mb-2">{{ $message }}</small>
-                                        @enderror
-                                    </form>
-                                @endif
-                            </div>
 
-                            <div class="mt-4 p-3 bg-warning-subtle rounded-3">
-                                <h6 class="small fw-bold text-warning-emphasis"><i class="fas fa-info-circle me-1"></i>
-                                    Instruksi</h6>
-                                <p class="mb-0 x-small text-muted" style="font-size: 0.75rem;">
-                                    Pembayaran berlaku maksimal 1x24 jam. Gunakan kode unik jika diminta pada saat transfer.
-                                </p>
-                            </div>
+                                    <div class="mb-2">
+                                        <label class="x-small text-muted fw-bold">METODE KURIR</label>
+                                        <select name="courier" class="form-select form-select-sm">
+                                            <option value="kurir_toko">Kurir Internal Toko</option>
+                                            <option value="gosend">GoSend / GrabExpress</option>
+                                        </select>
+                                    </div>
 
-                            <form action="{{ route('orders.cancel', $order->id) }}" method="POST"
-                                onsubmit="return confirm('Yakin ingin membatalkan order ini?')" class="mt-3 text-center">
-                                @csrf
-                                @method('PUT')
-                                <button class="btn btn-link btn-sm text-danger text-decoration-none">
-                                    <i class="fas fa-trash-alt me-1"></i> Batalkan Order
-                                </button>
-                            </form>
-                        @endif
+                                    <input type="hidden" name="shipping_cost" id="shippingCostInput" value="0">
+                                </div>
+
+                                <div class="mb-3">
+                                    <h6 class="fw-bold x-small text-uppercase mb-2">Gunakan Kupon</h6>
+                                    <select name="coupon_user_id" class="form-select form-select-sm" id="couponSelect">
+                                        <option value="" data-discount="0">-- Pilih Kupon (Jika ada) --</option>
+                                        @foreach ($couponUsers as $cu)
+                                            <option value="{{ $cu->id }}"
+                                                data-discount="{{ $cu->coupon->discount_percentage }}">
+                                                {{ $cu->coupon->title }} ({{ $cu->coupon->discount_percentage }}%)
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                <div class="d-grid gap-2">
+                                    <button type="submit" id="btnSubmitPayment"
+                                        class="btn btn-primary fw-bold py-3 rounded-3 shadow-sm" disabled>
+                                        LANJUT KE PEMBAYARAN <i class="fas fa-chevron-right ms-2"></i>
+                                    </button>
+                                    <button type="button"
+                                        class="btn btn-link text-danger btn-sm fw-bold text-decoration-none"
+                                        data-bs-toggle="modal" data-bs-target="#cancelOrderModal">
+                                        Batalkan Pesanan Ini
+                                    </button>
+                                </div>
+                            @endif
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="cancelOrderModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-body text-center p-4">
+                    <i class="fas fa-exclamation-triangle fa-3x text-danger mb-3"></i>
+                    <h5 class="fw-bold">Batalkan Pesanan?</h5>
+                    <p class="text-muted">Tindakan ini tidak dapat dibatalkan.</p>
+                    <div class="d-grid gap-2">
+                        <form action="{{ route('orders.cancel', $order->id) }}" method="POST">
+                            @csrf
+                            @method('PUT')
+                            <button type="submit" class="btn btn-danger w-100 fw-bold">Ya, Batalkan</button>
+                        </form>
+                        <button type="button" class="btn btn-light w-100" data-bs-dismiss="modal">Tutup</button>
                     </div>
                 </div>
             </div>
@@ -157,57 +194,86 @@
     </div>
 
     <style>
+        .x-small {
+            font-size: 0.75rem;
+        }
+
         .bg-warning-subtle {
-            background-color: #fff3cd !important;
-            color: #856404 !important;
+            background-color: #fff3cd;
+            color: #856404;
         }
 
         .bg-info-subtle {
-            background-color: #cff4fc !important;
-            color: #055160 !important;
+            background-color: #cff4fc;
+            color: #055160;
         }
 
         .bg-success-subtle {
-            background-color: #d1e7dd !important;
-            color: #0f5132 !important;
+            background-color: #d1e7dd;
+            color: #0f5132;
         }
 
         .bg-danger-subtle {
-            background-color: #f8d7da !important;
-            color: #842029 !important;
+            background-color: #f8d7da;
+            color: #842029;
         }
 
-        .uppercase {
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-size: 0.7rem;
+        .form-select-sm {
+            border-radius: 8px;
         }
     </style>
 
     <script>
-        const couponSelect = document.getElementById('couponSelect');
-        const totalAwal = {{ $order->total_raw }};
-        const totalAkhirEl = document.getElementById('totalAkhir');
-        const totalPotonganEl = document.getElementById('totalPotongan');
-        const totalAfterWrapper = document.getElementById('discountSection');
+        document.addEventListener('DOMContentLoaded', function() {
+            const totalRaw = parseInt("{{ $order->total_raw }}");
+            let currentOngkir = 0;
+            let currentDiscountPercent = 0;
 
-        if (couponSelect) {
-            couponSelect.addEventListener('change', function() {
-                const selectedOption = this.options[this.selectedIndex];
-                const discount = selectedOption.getAttribute('data-discount');
+            const el = {
+                area: document.getElementById('destinationArea'),
+                coupon: document.getElementById('couponSelect'),
+                displayOngkir: document.getElementById('ongkirDisplay'),
+                displayDiscount: document.getElementById('totalPotongan'),
+                displayTotal: document.getElementById('totalAkhirDisplay'),
+                discountDiv: document.getElementById('discountSection'),
+                costInput: document.getElementById('shippingCostInput'),
+                btnSubmit: document.getElementById('btnSubmitPayment')
+            };
 
-                if (!discount) {
-                    totalAfterWrapper.classList.add('d-none');
-                    return;
+            function calculateFinal() {
+                const discountAmount = (currentDiscountPercent / 100) * totalRaw;
+                const grandTotal = (totalRaw - discountAmount) + currentOngkir;
+
+                if (discountAmount > 0) {
+                    el.discountDiv.classList.remove('d-none');
+                    el.displayDiscount.innerText = '- Rp ' + discountAmount.toLocaleString('id-ID');
+                } else {
+                    el.discountDiv.classList.add('d-none');
                 }
 
-                const discountValue = (discount / 100) * totalAwal;
-                const finalTotal = totalAwal - discountValue;
+                el.displayOngkir.innerText = 'Rp ' + currentOngkir.toLocaleString('id-ID');
+                el.displayTotal.innerText = grandTotal.toLocaleString('id-ID');
+            }
 
-                totalPotonganEl.innerText = '- Rp ' + discountValue.toLocaleString('id-ID');
-                totalAkhirEl.innerText = finalTotal.toLocaleString('id-ID');
-                totalAfterWrapper.classList.remove('d-none');
+            el.area.addEventListener('change', function() {
+                const selectedOption = this.options[this.selectedIndex];
+                const cost = parseInt(selectedOption.getAttribute('data-cost')) || 0;
+
+                currentOngkir = cost;
+                el.costInput.value = cost;
+
+                el.btnSubmit.disabled = (cost === 0);
+
+                calculateFinal();
             });
-        }
+
+            if (el.coupon) {
+                el.coupon.addEventListener('change', function() {
+                    const selectedOption = this.options[this.selectedIndex];
+                    currentDiscountPercent = parseInt(selectedOption.getAttribute('data-discount')) || 0;
+                    calculateFinal();
+                });
+            }
+        });
     </script>
 @endsection

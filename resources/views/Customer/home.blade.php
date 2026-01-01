@@ -9,7 +9,7 @@
             <p class="lead text-muted mb-4">Rasa otentik untuk masakan Anda, langsung dari bahan pilihan berkualitas tinggi.
             </p>
             <div class="d-flex justify-content-center gap-3">
-                <a href="#recipes" class="btn btn-primary btn-lg rounded-pill px-4">Lihat Resep</a>
+                <a href="{{ route('recipes.index') }}" class="btn btn-primary btn-lg rounded-pill px-4">Lihat Resep</a>
                 <a href="{{ route('ingredients.index') }}" class="btn btn-outline-primary btn-lg rounded-pill px-4">Cari
                     Bahan</a>
             </div>
@@ -29,11 +29,11 @@
             @foreach ($recipes->take(3) as $recipe)
                 <div class="col-md-4">
                     <div class="card h-100 border-0 shadow-sm hover-top" style="border-radius: 20px; overflow: hidden;">
-                        <img src="{{ asset('storage/' . $recipe->image_url) }}" class="card-img-top"
+                        <img src="{{ asset('recipes/' . $recipe->image_url) }}" class="card-img-top"
                             style="height: 220px; object-fit: cover;">
                         <div class="card-body p-4 text-center">
                             <h5 class="fw-bold">{{ $recipe->name }}</h5>
-                            <p class="text-muted small">{{ Str::limit($recipe->steps, 60) }}</p>
+                            <p class="text-muted small">{{ Str::limit($recipe->description, 60) }}</p>
                             <a href="{{ route('recipes.show', $recipe->id) }}"
                                 class="btn btn-light w-100 rounded-pill fw-semibold">Detail Resep</a>
                         </div>
@@ -56,8 +56,8 @@
         <div class="row g-4">
             @foreach ($ingredients as $ingredient)
                 <div class="col-md-3">
-                    <div class="card h-100 border-0 shadow-sm text-center p-3" style="border-radius: 20px;">
-                        <img src="{{ asset('storage/' . $ingredient->image_url) }}" class="mx-auto mb-3"
+                    <div class="card h-100 border-0 shadow-sm text-center p-3 hover-top" style="border-radius: 20px;">
+                        <img src="{{ asset('ingredients/' . $ingredient->image_url) }}" class="mx-auto mb-3"
                             style="width: 120px; height: 120px; object-fit: contain;">
                         <h6 class="fw-bold mb-1">{{ $ingredient->name }}</h6>
                         <p class="text-primary fw-bold mb-3">Rp

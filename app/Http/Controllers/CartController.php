@@ -180,51 +180,46 @@ class CartController extends Controller
         return back()->withErrors('Gagal menghapus item');
     }
 
-    public function checkout()
+    public function checkout(Request $request)
     {
-        $cart = session()->get('cart');
-        $userId = Auth::id();
+        $cart = session()->get('cart', []);
+        $selectedIds = $request->input('selected_items', []);
 
-        if (!$cart || count($cart) === 0) {
-            return back()->withErrors('Keranjang kosong');
+        if (empty($selectedIds)) {
+            return back()->withErrors('Pilih barang terlebih dahulu.');
         }
 
-        $total = session()->get('cart_total', 0);
+        $itemsToCheckout = array_intersect_key($cart, array_flip($selectedIds));
+
+        $totalPrice = 0;
+        foreach ($itemsToCheckout as $item) {
+            $totalPrice += $item['price'] * $item['quantity'];
+        }
 
         DB::beginTransaction();
         try {
-            DB::statement(
-                'CALL create_orders_procedure(?, ?, ?)',
-                ['pending', $total, $userId]
-            );
+            DB::statement('CALL create_orders_procedure(?, ?, ?)', ['pending', $totalPrice, Auth::id()]);
 
-            $order = DB::table('orders')
-                ->where('user_id', $userId)
-                ->latest()
-                ->first();
+            $order = DB::table('orders')->where('user_id', Auth::id())->latest()->first();
 
-            foreach ($cart as $item) {
-                DB::statement(
-                    'CALL create_orderdetail_procedure(?, ?, ?, ?)',
-                    [
-                        $order->id,
-                        $item['product_id'],
-                        $item['quantity'],
-                        $item['price']
-                    ]
-                );
+            foreach ($itemsToCheckout as $id => $item) {
+                DB::statement('CALL create_orderdetail_procedure(?, ?, ?, ?)', [
+                    $order->id,
+                    $item['product_id'],
+                    $item['quantity'],
+                    $item['price']
+                ]);
+
+                unset($cart[$id]);
             }
 
             DB::commit();
-            session()->forget(['cart', 'cart_total']);
 
-            NotificationController::orderProcessing($userId, $order->id);
-            return redirect()
-                ->route('orders.index')
-                ->with('success', 'Checkout berhasil');
-        } catch (\Throwable $e) {
+            session()->put('cart', $cart);
+            return redirect()->route('orders.index')->with('success', 'Checkout berhasil!');
+        } catch (\Exception $e) {
             DB::rollBack();
-            return back()->withErrors('Gagal checkout: ' . $e->getMessage());
+            return back()->withErrors('Error: ' . $e->getMessage());
         }
     }
 }

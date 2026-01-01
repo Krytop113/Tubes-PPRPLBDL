@@ -10,8 +10,10 @@ return new class extends Migration
     {
         Schema::create('log', function (Blueprint $table) {
             $table->id();
-            $table->string('name')->unique();
-            $table->text('description');
+            $table->string('user_id');
+            $table->string('pengguna');
+            $table->string('title');
+            $table->text('action');
             $table->timestamps();
         });
     }

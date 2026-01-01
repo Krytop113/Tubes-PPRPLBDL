@@ -41,7 +41,8 @@ class Payment extends Model
 
 	protected $fillable = [
 		'coupon_amount',
-		'amount',
+		'shipping_cost',
+		'total_amount',
 		'method',
 		'date',
 		'order_id',

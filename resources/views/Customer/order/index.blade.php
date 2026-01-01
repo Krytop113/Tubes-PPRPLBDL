@@ -27,7 +27,7 @@
             </a>
             <a href="{{ route('orders.index', ['status' => 'order']) }}"
                 class="btn rounded-pill px-4 btn-sm {{ $status == 'order' ? 'btn-success' : 'btn-light border' }}">
-                <i class="fas fa-box me-1 text-success"></i> Selesai
+                <i class="fas fa-box me-1 text-success"></i> Done
             </a>
             <a href="{{ route('orders.index', ['status' => 'cancel']) }}"
                 class="btn rounded-pill px-4 btn-sm {{ $status == 'cancel' ? 'btn-danger' : 'btn-light border' }}">
@@ -82,7 +82,7 @@
                                         @break
 
                                         @case('cancel')
-                                            <span class="badge rounded-pill bg-danger-subtle text-danger px-3">Dibatalkan</span>
+                                            <span class="badge rounded-pill bg-danger-subtle text-danger px-3">Cancel</span>
                                         @break
                                     @endswitch
                                 </td>
@@ -96,8 +96,8 @@
                             @empty
                                 <tr>
                                     <td colspan="5" class="py-5 text-center">
-                                        <img src="https://illustrations.popsy.co/gray/box.svg" alt="Empty"
-                                            style="width: 150px;" class="mb-3">
+                                        <img src="https://cdn-icons-png.flaticon.com/512/7486/7486744.png" width="80"
+                                            class="mb-3 opacity-50"><br>
                                         <p class="text-muted">Belum ada pesanan yang masuk.</p>
                                     </td>
                                 </tr>

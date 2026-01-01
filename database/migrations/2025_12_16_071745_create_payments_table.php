@@ -14,11 +14,12 @@ return new class extends Migration
         Schema::create('payments', function (Blueprint $table) {
             $table->id();
             $table->decimal('coupon_amount', 10, 2);
-            $table->decimal('amount', 10, 2);
+            $table->decimal('shipping_cost', 10, 2);
+            $table->decimal('total_amount', 10, 2);
             $table->string('method');
             $table->datetime('date');
             $table->foreignId('order_id')->constrained('orders');
-            $table->foreignId('coupon_id')->constrained('coupon_users');
+            $table->foreignId('coupon_id')->constrained('coupon_users')->nullable();
             $table->timestamps();
         });
     }

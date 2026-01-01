@@ -3,7 +3,7 @@
     $currentRoute = Route::currentRouteName();
 @endphp
 
-<div class="sidebar position-fixed top-0 start-0 vh-100 shadow">
+<div class="sidebar position-fixed top-0 start-0 vh-100 shadow overflow-y-auto">
     <div class="p-4">
         <h4 class="text-white fw-bold mb-0">Control Panel</h4>
         <h6 class="text-white fw-bold mb-0">Kriuk Kriuk</h6>
@@ -17,19 +17,23 @@
                 <i class="fas fa-tachometer-alt"></i> Dashboard
             </a>
 
-            <a href="{{ route('control.ingredients.index') }}" class="nav-link {{ request()->is('control/ingredients*') ? 'active' : '' }}">
+            <a href="{{ route('control.ingredients.index') }}"
+                class="nav-link {{ request()->is('control/ingredients*') ? 'active' : '' }}">
                 <i class="fas fa-layer-group"></i> Bahan Baku
             </a>
 
-            <a href="{{ route('control.recipes.index') }}" class="nav-link {{ request()->is('control/recipes*') ? 'active' : '' }}">
+            <a href="{{ route('control.recipes.index') }}"
+                class="nav-link {{ request()->is('control/recipes*') ? 'active' : '' }}">
                 <i class="fas fa-utensils"></i> Daftar Resep
             </a>
 
-            <a href="{{ route('control.coupons.index') }}" class="nav-link {{ request()->is('control/coupons*') ? 'active' : '' }}">
+            <a href="{{ route('control.coupons.index') }}"
+                class="nav-link {{ request()->is('control/coupons*') ? 'active' : '' }}">
                 <i class="fas fa-utensils"></i> Mengatur Coupon
             </a>
 
-            <a href="{{ route('control.orders.index') }}" class="nav-link {{ request()->is('control/orders*') ? 'active' : '' }}">
+            <a href="{{ route('control.orders.index') }}"
+                class="nav-link {{ request()->is('control/orders*') ? 'active' : '' }}">
                 <i class="fas fa-clipboard-list"></i> Laporan Pesanan
             </a>
         @endif
@@ -57,3 +61,19 @@
         @endif
     </div>
 </div>
+
+<style>
+    .sidebar {
+        width: 250px;
+        z-index: 1000;
+        scrollbar-width: thin;
+    }
+
+    .sidebar::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .sidebar::-webkit-scrollbar-thumb {
+        border-radius: 10px;
+    }
+</style>

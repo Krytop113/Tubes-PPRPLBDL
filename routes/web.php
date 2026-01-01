@@ -17,6 +17,8 @@ use App\Http\Controllers\Auth\SignupController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\CouponController;
+use App\Http\Controllers\OngkirController;
+use App\Http\Controllers\PaymentController;
 
 Route::get('/login', function () {
     return view('auth.login');
@@ -147,8 +149,20 @@ Route::middleware(['auth', 'role:customer,employee,admin'])
         Route::put('/orders/{id}/cancel', [OrderController::class, 'cancel'])
             ->name('orders.cancel');
 
+        Route::get('/payment', function () {
+            return redirect()->route('orders.index')
+                ->with('error', 'Sesi pembayaran habis, silakan proses ulang dari detail order.');
+        })->name('payment');
+        Route::post('/payment', [PaymentController::class, 'payment'])
+            ->name('payment.post');
+        Route::post('/payment/store', [PaymentController::class, 'store'])
+            ->name('payment.store');
+
         Route::post('/orders/{order}/coupon', [OrderController::class, 'applyCoupon'])
             ->name('orders.applyCoupon');
+
+        Route::get('/cities', [OngkirController::class, 'getCities']);
+        Route::post('/check-ongkir', [OngkirController::class, 'checkCost']);
 
         Route::get('/profile', [UserController::class, 'editProfile'])
             ->name('editProfile');

@@ -18,7 +18,7 @@
                 </div>
 
                 <div class="col-12 d-flex flex-wrap gap-2 justify-content-center mt-3">
-                    <a href="{{ route('ingredients.index', ['search' => request('search')]) }}"
+                    <a href="{{ route('recipes.index', ['search' => request('search')]) }}"
                         class="btn btn-sm rounded-pill px-4 {{ !request('category') ? 'btn-primary' : 'btn-outline-secondary' }}">
                         Semua
                     </a>
@@ -45,7 +45,7 @@
                 <div class="col-md-6 col-lg-3">
                     <div class="card h-100 border-0 shadow-sm hover-top card-recipe">
                         <div class="position-relative overflow-hidden">
-                            <img src="{{ asset('storage/' . $recipe->image_url) }}" class="card-img-top"
+                            <img src="{{ asset('recipes/' . $recipe->image_url) }}" class="card-img-top"
                                 style="height:200px; object-fit:cover;" alt="{{ $recipe->name }}">
 
                             <span class="position-absolute top-0 start-0 m-3 badge bg-white text-dark shadow-sm fw-medium">

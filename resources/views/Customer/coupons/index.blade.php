@@ -93,21 +93,21 @@
 
             <div class="tab-pane fade" id="mine" role="tabpanel">
                 <div class="row g-4">
-                    @forelse($usercoupons as $coupon)
+                    @forelse($usercoupons as $usercoupon)
                         <div class="col-md-6 col-lg-4">
                             <div class="card h-100 border-0 shadow-sm overflow-hidden" style="border-radius: 15px;">
                                 <div class="row g-0 h-100">
                                     <div
                                         class="col-4 bg-secondary d-flex align-items-center justify-content-center text-white">
-                                        <h2 class="fw-bold mb-0">{{ number_format($coupon->discount_percentage, 0) }}</h2>
+                                        <h2 class="fw-bold mb-0">{{ number_format($usercoupon->coupon->discount_percentage, 0) }}%</h2>
                                     </div>
                                     <div class="col-8 bg-white ticket-dashed">
                                         <div class="card-body">
-                                            <h6 class="fw-bold mb-1">{{ $coupon->title }}</h6>
-                                            <p class="text-muted mb-2" style="font-size: 0.7rem;">{{ $coupon->description }}
+                                            <h6 class="fw-bold mb-1">{{ $usercoupon->coupon->title }}</h6>
+                                            <p class="text-muted mb-2" style="font-size: 0.7rem;">{{ $usercoupon->coupon->description }}
                                             </p>
                                             <p class="text-danger fw-bold mb-2" style="font-size: 0.65rem;">
-                                                Berakhir: {{ \Carbon\Carbon::parse($coupon->end_date)->format('d/m/Y') }}
+                                                Berakhir: {{ \Carbon\Carbon::parse($usercoupon->coupon->end_date)->format('d/m/Y') }}
                                             </p>
                                         </div>
                                     </div>

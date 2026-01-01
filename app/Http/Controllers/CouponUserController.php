@@ -35,4 +35,9 @@ class CouponUserController extends Controller
 
         return back()->with('success', 'Kupon berhasil diterapkan');
     }
+
+    public function used(CouponUser $couponUser)
+    {
+        //
+    }
 }

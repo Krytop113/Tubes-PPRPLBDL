@@ -56,7 +56,7 @@ class OrderController extends Controller
             })
             ->get();
 
-        return view('customer.order.show', compact('order', 'orderDetails','couponUsers'));
+        return view('customer.order.show', compact('order', 'orderDetails', 'couponUsers'));
     }
 
     public function cancel($id)
@@ -91,14 +91,22 @@ class OrderController extends Controller
     }
 
     // Control Panel View
-    public function indexcontrol(Request $request){
-        $orders = DB::table('orders')
-            ->when($request->filled('status'), function ($query) use ($request) {
-                $query->where('status', $request->status);
-            })
-            ->orderByDesc('created_at')
-            ->get();
+    public function indexcontrol(Request $request)
+    {
+        $query = DB::table('orders')
+            ->join('users', 'orders.user_id', '=', 'users.id')
+            ->select('orders.*', 'users.name as customer_name')
+            ->whereIn('orders.status', ['done', 'paid']);
 
-        return view('control.orders.index', compact('orders'));
+        if ($request->has('search')) {
+            $search = $request->query('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('users.name', 'like', "%{$search}%")
+                    ->orWhere('orders.id', 'like', "%{$search}%");
+            });
+        }
+        $orders = $query->orderByDesc('orders.created_at')->get();
+
+        return view('control.order.index', compact('orders'));
     }
 }
