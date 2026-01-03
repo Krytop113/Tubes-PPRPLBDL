@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('method');
             $table->datetime('date');
             $table->foreignId('order_id')->constrained('orders');
-            $table->foreignId('coupon_id')->constrained('coupon_users')->nullable();
+            $table->foreignId('coupon_id')->nullable()->constrained('coupon_users');
             $table->timestamps();
         });
     }

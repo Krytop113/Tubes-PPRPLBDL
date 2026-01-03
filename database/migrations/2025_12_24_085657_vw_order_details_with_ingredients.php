@@ -13,7 +13,7 @@ return new class extends Migration {
                 od.order_id,
                 od.ingredient_id,
                 od.quantity,
-                od.price,
+                od.price AS detail_price,
                 od.status AS order_detail_status,
                 od.created_at,
                 od.updated_at,
@@ -21,7 +21,8 @@ return new class extends Migration {
                 i.image_url AS ingredient_image,
                 i.unit AS ingredient_unit,
                 o.user_id,
-                o.status AS order_status
+                o.status AS order_status,
+                o.total_raw AS order_total_raw
             FROM order_details od
             JOIN ingredients i ON i.id = od.ingredient_id
             JOIN orders o ON o.id = od.order_id

@@ -38,7 +38,7 @@ return new class extends Migration
                     SET MESSAGE_TEXT = 'Gagal Update: Bahan dengan ID tersebut tidak ditemukan.';
                 ELSEIF p_category_id IS NOT NULL
                     AND NOT EXISTS (
-                        SELECT 1 FROM ingredient_category WHERE id = p_category_id
+                        SELECT 1 FROM ingredient_categories WHERE id = p_category_id
                     ) THEN
                     SIGNAL SQLSTATE '45000'
                     SET MESSAGE_TEXT = 'Gagal Update: ID kategori bahan tidak valid.';
@@ -50,11 +50,11 @@ return new class extends Migration
                     unit = IFNULL(p_unit, unit),
                     price_per_unit = IFNULL(p_price_per_unit, price_per_unit),
                     description = IFNULL(p_description, description),
-                    quantity = IFNULL(p_quantity, quantity),
+                    stock_quantity = IFNULL(p_quantity, stock_quantity),
                     image_url = IFNULL(p_image_url, image_url),
-                    min_stock = IFNULL(p_min_stock, min_stock),
+                    minimum_stock_level = IFNULL(p_min_stock, minimum_stock_level),
                     ingredient_category_id = IFNULL(p_category_id, ingredient_category_id),
-                    last_update = NOW()
+                    updated_at = NOW()
                 WHERE id = p_ingredient_id;
 
                 IF v_is_error = 0 THEN

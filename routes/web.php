@@ -78,13 +78,27 @@ Route::middleware(['auth', 'role:admin,employee'])
         Route::get('control/dashboard', [DashboardController::class, 'index'])
             ->name('dashboard');
 
+        // control Ingredients
         Route::get('/control/ingredients', [IngredientController::class, 'indexcontrol'])
             ->name('control.ingredients.index');
+
         Route::get('/control/ingredients/create', [IngredientController::class, 'create'])
             ->name('control.ingredients.create');
+        Route::post('/control/ingredients/store', [IngredientController::class, 'store'])
+            ->name('control.ingredients.store');
+
         Route::get('/control/ingredients/{ingredient}', [IngredientController::class, 'edit'])
             ->name('control.ingredients.edit');
+        Route::put('/control/ingredients/{ingredient}', [IngredientController::class, 'update'])
+            ->name('control.ingredients.update');
 
+        Route::delete('/control/ingredients/{ingredient}', [IngredientController::class, 'destroy'])
+            ->name('control.ingredients.destroy');
+
+        Route::post('/control/ingredients/quickadd', [IngredientController::class, 'quickadd'])
+            ->name('control.ingredients.quickadd');
+
+        // control Recipes
         Route::get('/control/recipes', [RecipeController::class, 'indexcontrol'])
             ->name('control.recipes.index');
         Route::get('/control/recipes/create', [RecipeController::class, 'create'])
@@ -154,15 +168,12 @@ Route::middleware(['auth', 'role:customer,employee,admin'])
                 ->with('error', 'Sesi pembayaran habis, silakan proses ulang dari detail order.');
         })->name('payment');
         Route::post('/payment', [PaymentController::class, 'payment'])
-            ->name('payment.post');
+            ->name('payment');
         Route::post('/payment/store', [PaymentController::class, 'store'])
             ->name('payment.store');
 
         Route::post('/orders/{order}/coupon', [OrderController::class, 'applyCoupon'])
             ->name('orders.applyCoupon');
-
-        Route::get('/cities', [OngkirController::class, 'getCities']);
-        Route::post('/check-ongkir', [OngkirController::class, 'checkCost']);
 
         Route::get('/profile', [UserController::class, 'editProfile'])
             ->name('editProfile');

@@ -49,7 +49,7 @@ return new class extends Migration
                     SIGNAL SQLSTATE '45000'
                     SET MESSAGE_TEXT = 'Gagal Insert: ID kategori tidak valid.';
                 ELSEIF NOT EXISTS (
-                    SELECT 1 FROM ingredient_category WHERE id = p_category_id
+                    SELECT 1 FROM ingredient_categories WHERE id = p_category_id
                 ) THEN
                     SIGNAL SQLSTATE '45000'
                     SET MESSAGE_TEXT = 'Gagal Insert: ID kategori tidak ditemukan.';
@@ -57,8 +57,8 @@ return new class extends Migration
 
                 INSERT INTO ingredients (
                     name, unit, price_per_unit,
-                    description, quantity,
-                    image_url, min_stock, ingredient_category_id, created_at, updated_at
+                    description, stock_quantity,
+                    image_url, minimum_stock_level, ingredient_category_id, created_at, updated_at
                 ) VALUES (
                     p_name, p_unit, p_price_per_unit,
                     p_description, p_quantity,
@@ -69,7 +69,7 @@ return new class extends Migration
                     SELECT CONCAT(
                         'Bahan \"', p_name,
                         '\" berhasil ditambahkan dengan ID ',
-                        v_MaxID
+                        LAST_INSERT_ID(), '.'
                     ) AS ResultMessage;
                 ELSE
                     SELECT CONCAT(

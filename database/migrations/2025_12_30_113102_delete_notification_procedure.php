@@ -8,9 +8,9 @@ return new class extends Migration
     public function up(): void
     {
         DB::unprepared("
-            DROP PROCEDURE IF EXISTS sp_delete_notification;
+            DROP PROCEDURE IF EXISTS delete_notification_procedure;
 
-            CREATE PROCEDURE sp_delete_notification(
+            CREATE PROCEDURE delete_notification_procedure(
                 IN p_id INT
             )
             BEGIN
@@ -56,6 +56,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        DB::unprepared("DROP PROCEDURE IF EXISTS sp_delete_notification;");
+        DB::unprepared("DROP PROCEDURE IF EXISTS delete_notification_procedure;");
     }
 };

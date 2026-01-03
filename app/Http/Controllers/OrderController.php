@@ -6,8 +6,6 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
-use App\Models\CouponUser;
-use App\Models\OrderDetail;
 
 class OrderController extends Controller
 {
@@ -24,7 +22,7 @@ class OrderController extends Controller
         }
 
         $orders = $query
-            ->orderByDesc('created_at')
+            ->orderByDesc('updated_at')
             ->get();
 
         return view('customer.order.index', compact('orders', 'status'));
@@ -33,61 +31,71 @@ class OrderController extends Controller
     public function orderDetail($id)
     {
         $userId = Auth::id();
-        $order = DB::table('orders')
-            ->where('id', $id)
-            ->where('user_id', $userId)
-            ->first();
-
-        if (!$order) {
-            return back()->withErrors('Order tidak ditemukan.');
-        }
-
-        $orderDetails = OrderDetail::with('ingredient')
+        $payment = DB::table('payments')
             ->where('order_id', $id)
-            ->get();
+            ->first();
+        $now = now();
 
-        $couponUsers = CouponUser::with('coupon')
-            ->where('user_id', $userId)
-            ->where('status', 'unused')
-            ->whereHas('coupon', function ($q) {
-                $now = now();
-                $q->where('start_date', '<=', $now)
-                    ->where('end_date', '>=', $now);
-            })
-            ->get();
+        try {
+            $orderDetails = DB::table('vw_order_details_with_ingredients')
+                ->where('order_id', $id)
+                ->where('user_id', $userId)
+                ->get();
 
-        return view('customer.order.show', compact('order', 'orderDetails', 'couponUsers'));
+            if ($orderDetails->isEmpty()) {
+                return back()->withErrors('Order tidak ditemukan atau Anda tidak memiliki akses.');
+            }
+
+            $order = $orderDetails->first();
+
+            $couponUsers = DB::table('vw_user_coupons_detailed')
+                ->where('user_id', $userId)
+                ->where('usage_status', 'unused')
+                ->where('start_date', '<=', $now)
+                ->where('end_date', '>=', $now)
+                ->get();
+
+            return view('customer.order.show', compact('order', 'orderDetails', 'couponUsers', 'payment'));
+        } catch (\Exception $e) {
+            report($e);
+            return back()->withErrors('Terjadi kesalahan saat memuat data.');
+        }
     }
 
     public function cancel($id)
     {
-        DB::statement(
-            'CALL edit_orders_procedure(?, ?)',
-            [
-                $id,
-                'cancel'
-            ]
-        );
-
-        $details = DB::table('order_details')
-            ->where('order_id', $id)
-            ->get();
-
-        foreach ($details as $detail) {
+        try {
             DB::statement(
-                'CALL edit_orderdetail_procedure(?, ?)',
+                'CALL edit_orders_procedure(?, ?)',
                 [
-                    $detail->id,
+                    $id,
                     'cancel'
                 ]
             );
+
+            $details = DB::table('order_details')
+                ->where('order_id', $id)
+                ->get();
+
+            foreach ($details as $detail) {
+                DB::statement(
+                    'CALL edit_orderdetail_procedure(?, ?)',
+                    [
+                        $detail->id,
+                        'cancel'
+                    ]
+                );
+            }
+
+            NotificationController::orderCancel(Auth::id(), $id);
+
+            return redirect()
+                ->route('orders.index')
+                ->with('success', 'Order berhasil dibatalkan');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->withErrors('Terjadi kesalahan saat memuat data.');
         }
-
-        NotificationController::orderCancel(Auth::id(), $id);
-
-        return redirect()
-            ->route('orders.index')
-            ->with('success', 'Order berhasil dibatalkan');
     }
 
     // Control Panel View

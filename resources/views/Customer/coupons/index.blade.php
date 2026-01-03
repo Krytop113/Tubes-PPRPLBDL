@@ -1,36 +1,23 @@
 @extends('layouts.app')
 
 @section('content')
-    <style>
-        .ticket-dashed {
-            border-left: 2px dashed #dee2e6;
-            position: relative;
-        }
+    <div class="container-fluid">
+        @if (session('success'))
+            <div class="alert alert-success border-0 shadow-sm mb-4">
+                <i class="fas fa-check-circle me-2"></i> {{ session('success') }}
+            </div>
+        @endif
 
-        .ticket-dashed::before,
-        .ticket-dashed::after {
-            content: '';
-            position: absolute;
-            width: 20px;
-            height: 20px;
-            background: #f8f9fa;
-            border-radius: 50%;
-            left: -11px;
-        }
-
-        .ticket-dashed::before {
-            top: -10px;
-        }
-
-        .ticket-dashed::after {
-            bottom: -10px;
-        }
-
-        .btn-mono {
-            font-family: monospace;
-            letter-spacing: 1px;
-        }
-    </style>
+        @if ($errors->any())
+            <div class="alert alert-danger border-0 shadow-sm mb-4">
+                <ul class="mb-0">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+    </div>
 
     <div class="container py-5">
         <div class="text-center mb-5">
@@ -99,15 +86,18 @@
                                 <div class="row g-0 h-100">
                                     <div
                                         class="col-4 bg-secondary d-flex align-items-center justify-content-center text-white">
-                                        <h2 class="fw-bold mb-0">{{ number_format($usercoupon->coupon->discount_percentage, 0) }}%</h2>
+                                        <h2 class="fw-bold mb-0">
+                                            {{ number_format($usercoupon->coupon->discount_percentage, 0) }}%</h2>
                                     </div>
                                     <div class="col-8 bg-white ticket-dashed">
                                         <div class="card-body">
                                             <h6 class="fw-bold mb-1">{{ $usercoupon->coupon->title }}</h6>
-                                            <p class="text-muted mb-2" style="font-size: 0.7rem;">{{ $usercoupon->coupon->description }}
+                                            <p class="text-muted mb-2" style="font-size: 0.7rem;">
+                                                {{ $usercoupon->coupon->description }}
                                             </p>
                                             <p class="text-danger fw-bold mb-2" style="font-size: 0.65rem;">
-                                                Berakhir: {{ \Carbon\Carbon::parse($usercoupon->coupon->end_date)->format('d/m/Y') }}
+                                                Berakhir:
+                                                {{ \Carbon\Carbon::parse($usercoupon->coupon->end_date)->format('d/m/Y') }}
                                             </p>
                                         </div>
                                     </div>

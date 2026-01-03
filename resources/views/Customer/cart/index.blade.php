@@ -1,6 +1,24 @@
 @extends('layouts.app')
 
 @section('content')
+    <div class="container-fluid">
+        @if (session('success'))
+            <div class="alert alert-success border-0 shadow-sm mb-4">
+                <i class="fas fa-check-circle me-2"></i> {{ session('success') }}
+            </div>
+        @endif
+
+        @if ($errors->any())
+            <div class="alert alert-danger border-0 shadow-sm mb-4">
+                <ul class="mb-0">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+    </div>
+
     <div class="container py-5">
         <h3 class="fw-bold mb-4">Keranjang Saya</h3>
 
@@ -38,7 +56,7 @@
                                                         value="{{ $id }}" class="form-check-input item-checkbox"
                                                         data-price="{{ $item->price }}" data-qty="{{ $item->quantity }}">
                                                 </td>
-                                                <td><span class="fw-bold">{{ $item->name }}</span></td>
+                                                <td><span class="fw-bold">{{ $item->name }} ({{ $item->unit }})</span></td>
                                                 <td>Rp {{ number_format($item->price, 0, ',', '.') }}</td>
                                                 <td class="text-center">
                                                     <div class="d-flex justify-content-center align-items-center gap-2">

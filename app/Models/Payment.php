@@ -18,7 +18,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $method
  * @property Carbon $date
  * @property int $order_id
- * @property int $coupon_id
+ * @property int|null $coupon_id
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * 

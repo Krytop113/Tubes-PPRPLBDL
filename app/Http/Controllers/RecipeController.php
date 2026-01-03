@@ -6,6 +6,8 @@ use App\Models\Recipe;
 use Illuminate\Http\Request;
 use App\Models\RecipeCategory;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class RecipeController extends Controller
 {
@@ -60,17 +62,23 @@ class RecipeController extends Controller
 
     public function create()
     {
-        //
+        $categories = RecipeCategory::all();
+        return view('control.recipe.create', compact('categories'));
     }
 
-    public function store(Request $request)
+    public function store(Request $request, Recipe $recipe)
     {
         //
     }
 
     public function edit(Recipe $recipe)
     {
-        //
+        if (empty($recipe)) {
+            return redirect()->route('recipes.index')->with('error', 'Data tidak ditemukan');
+        }
+
+        $categories = RecipeCategory::all();
+        return view('control.recipe.edit', compact('recipe', 'categories'));
     }
 
     public function update(Request $request, Recipe $recipe)
@@ -80,6 +88,20 @@ class RecipeController extends Controller
 
     public function destroy(Recipe $recipe)
     {
-        //
+        try {
+            $result = DB::select('CALL delete_ingredient_procedure(?)', [$recipe->id]);
+
+            if (!empty($result) && isset($result[0]->ErrorDetail)) {
+                throw new \Exception($result[0]->ErrorDetail);
+            }
+
+            if ($recipe->image_url && file_exists(public_path('recipes/' . $recipe->image_url))) {
+                unlink(public_path('recipes/' . $recipe->image_url));
+            }
+
+            return redirect()->route('control.recipe.index')->with('success', $$recipe->name . ' Berhasil dihapus!');
+        } catch (\Exception $e) {
+            return back()->withErrors($e->getMessage());
+        }
     }
 }

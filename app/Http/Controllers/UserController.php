@@ -9,18 +9,12 @@ use Illuminate\Support\Facades\DB;
 
 class UserController extends Controller
 {
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function editProfile(User $user)
     {
         $user = Auth::user();
         return view('profile', compact('user'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, User $user)
     {
         $user = Auth::user();

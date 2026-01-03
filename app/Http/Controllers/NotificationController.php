@@ -7,15 +7,17 @@ use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\Controller;
+use App\Models\Order;
 use Exception;
 
 class NotificationController extends Controller
 {
     private static function createNotification(
-        int $userId,
-        string $title,
-        string $subject,
-        string $message
+        $userId,
+        $title,
+        $subject,
+        $message
     ): void {
         DB::select("CALL create_notification_procedure(?, ?, ?, ?, ?, ?)", [
             $title,
@@ -37,20 +39,20 @@ class NotificationController extends Controller
         );
     }
 
-    public static function orderCheckout(int $userId, int $orderId): void
+    public static function orderCheckout(int $user, int $orderId): void
     {
         self::createNotification(
-            $userId,
+            $user,
             'Order Checkout',
             'Order Successfully Checked Out',
             "Your order #{$orderId} has been successfully checked out and waiting for processing."
         );
     }
 
-    public static function orderProcessing(int $userId, int $orderId): void
+    public static function orderProcessing(int $user, int $orderId): void
     {
         self::createNotification(
-            $userId,
+            $user,
             'Order Processing',
             'Order Now Being Processed',
             "Your order #{$orderId} is now being processed."
@@ -66,7 +68,6 @@ class NotificationController extends Controller
             "Your order #{$orderId} has been cancelled."
         );
     }
-
 
     public function index()
     {
@@ -93,20 +94,20 @@ class NotificationController extends Controller
     public function destroy($id)
     {
         try {
-            $results = DB::select('CALL delete_notification_procedure(?, ?)', [
-                $id,
-                Auth::id()
+            $result = DB::select('CALL delete_notification_procedure(?)', [
+                $id
             ]);
 
-            $message = $results[0]->ResultMessage ?? $results[0]->ErrorDetail ?? 'Notification deleted successfully.';
+            if (!empty($result) && isset($result[0]->ErrorDetail)) {
+                throw new \Exception($result[0]->ErrorDetail);
+            }
 
             return redirect()
                 ->route('notification.index')
-                ->with('success', $message);
-        } catch (Exception $e) {
-            return redirect()
-                ->back()
-                ->with('error', 'Gagal menghapus notifikasi: ' . $e->getMessage());
+                ->with('success', 'Notification deleted successfully.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->withErrors(['error' => 'Gagal menghapus notifikasi: ' . $e->getMessage()]);
         }
     }
 }

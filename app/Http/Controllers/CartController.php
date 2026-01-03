@@ -216,6 +216,9 @@ class CartController extends Controller
             DB::commit();
 
             session()->put('cart', $cart);
+            
+            NotificationController::orderCheckout(Auth::id(), $order->id);
+
             return redirect()->route('orders.index')->with('success', 'Checkout berhasil!');
         } catch (\Exception $e) {
             DB::rollBack();
