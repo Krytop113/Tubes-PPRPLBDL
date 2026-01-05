@@ -25,7 +25,6 @@ class CouponController extends Controller
 
         $usercoupons = CouponUser::with('coupon')
             ->where('user_id', $userId)
-            ->latest()
             ->get();
 
         return view('customer.coupons.index', compact('coupons', 'usercoupons'));
@@ -35,14 +34,19 @@ class CouponController extends Controller
     {
         $userId = Auth::id();
 
+        DB::beginTransaction();
         try {
-            DB::select("CALL create_couponuser_procedure(?, ?)", [$userId, $id]);
+            $result = DB::select("CALL create_couponuser_procedure(?, ?)", [$userId, $id]);
+
+            if (!empty($result) && isset($result[0]->ErrorDetail)) {
+                throw new Exception($result[0]->ErrorDetail);
+            }
+            DB::commit();
 
             return redirect()->back()->with('success', 'Kupon berhasil diklaim!');
         } catch (Exception $e) {
-            $errorMessage = $e->getMessage();
-
-            return redirect()->back()->with('error', 'Gagal klaim: ' . $errorMessage);
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Gagal klaim: ' . $e);
         }
     }
 

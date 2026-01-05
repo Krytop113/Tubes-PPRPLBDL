@@ -6,6 +6,8 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\Controller;
+use Exception;
 
 class UserController extends Controller
 {
@@ -15,42 +17,39 @@ class UserController extends Controller
         return view('profile', compact('user'));
     }
 
-    public function update(Request $request, User $user)
+    public function update(Request $request)
     {
         $user = Auth::user();
-        $validated = $request->validate([
-            'username'       => 'sometimes|string|max:50',
-            'email'          => 'sometimes|email|unique:users,email,' . $user->id,
-            'phone_number'   => 'sometimes|string|max:20',
-            'date_of_birth'  => 'sometimes|nullable|date',
+
+        $request->validate([
+            'name' => 'required|string|max:50',
+            'email' => 'required|email|unique:users,email,' . $user->id,
+            'phone_number' => 'nullable|string|max:20',
+            'date_of_birth' => 'nullable|date',
         ]);
 
-        $data = [
-            'username'      => $validated['username'] ?? $user->username,
-            'email'         => $validated['email'] ?? $user->email,
-            'phone_number'  => $validated['phone_number'] ?? $user->phone_number,
-            'date_of_birth' => $validated['date_of_birth'] ?? $user->date_of_birth,
-        ];
+        try {
+            $result = DB::select(
+                'CALL edit_user_profile(?, ?, ?, ?, ?)',
+                [
+                    $user->id,
+                    $request->name,
+                    $request->email,
+                    $request->phone_number,
+                    $request->date_of_birth,
+                ]
+            );
 
-        DB::statement(
-            'CALL update_user_profile(?, ?, ?, ?, ?)',
-            [
-                $user->id,
-                $data['username'],
-                $data['email'],
-                $data['phone_number'],
-                $data['date_of_birth'],
-            ]
-        );
+            if (!empty($result) && isset($result[0]->ErrorDetail)) {
+                throw new Exception($result[0]->ErrorDetail);
+            }
 
-        return view('customer/home')->with('success', 'Profile updated successfully.');
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(User $user)
-    {
-        //
+            return redirect()->route('editProfile')
+                ->with('success', 'Profil Anda berhasil diperbarui!');
+        } catch (\Exception $e) {
+            return back()
+                ->withInput()
+                ->withErrors("Gagal update profil User ID {$user->id}: " . $e->getMessage());
+        }
     }
 }

@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Order;
+use App\Http\Controllers\NotificationController;
 
 class OrderController extends Controller
 {
@@ -28,25 +30,23 @@ class OrderController extends Controller
         return view('customer.order.index', compact('orders', 'status'));
     }
 
-    public function orderDetail($id)
+    public function orderDetail(Order $order)
     {
         $userId = Auth::id();
-        $payment = DB::table('payments')
-            ->where('order_id', $id)
-            ->first();
         $now = now();
 
+        if ($order->user_id !== $userId) {
+            return back()->withErrors('Anda tidak memiliki akses ke order ini.');
+        }
+
         try {
+            $payment = DB::table('payments')
+                ->where('order_id', $order->id)
+                ->first();
+
             $orderDetails = DB::table('vw_order_details_with_ingredients')
-                ->where('order_id', $id)
-                ->where('user_id', $userId)
+                ->where('order_id', $order->id)
                 ->get();
-
-            if ($orderDetails->isEmpty()) {
-                return back()->withErrors('Order tidak ditemukan atau Anda tidak memiliki akses.');
-            }
-
-            $order = $orderDetails->first();
 
             $couponUsers = DB::table('vw_user_coupons_detailed')
                 ->where('user_id', $userId)
@@ -62,39 +62,44 @@ class OrderController extends Controller
         }
     }
 
-    public function cancel($id)
+    public function cancel(Order $order)
     {
+        $userId = Auth::id();
+
+        if ($order->user_id !== $userId) {
+            return back()->withErrors('Anda tidak memiliki akses untuk membatalkan pesanan ini.');
+        }
+
+        if ($order->status === 'cancel') {
+            return back()->withErrors('Pesanan ini sudah dibatalkan sebelumnya.');
+        }
+
+        DB::beginTransaction();
+
         try {
-            DB::statement(
-                'CALL edit_orders_procedure(?, ?)',
-                [
-                    $id,
+            DB::statement('CALL edit_orders_procedure(?, ?)', [
+                $order->id,
+                'cancel'
+            ]);
+
+            foreach ($order->order_details as $detail) {
+                DB::statement('CALL edit_orderdetail_procedure(?, ?)', [
+                    $detail->id,
                     'cancel'
-                ]
-            );
-
-            $details = DB::table('order_details')
-                ->where('order_id', $id)
-                ->get();
-
-            foreach ($details as $detail) {
-                DB::statement(
-                    'CALL edit_orderdetail_procedure(?, ?)',
-                    [
-                        $detail->id,
-                        'cancel'
-                    ]
-                );
+                ]);
             }
 
-            NotificationController::orderCancel(Auth::id(), $id);
+            NotificationController::orderCancel($userId, $order->id);
+
+            DB::commit();
 
             return redirect()
                 ->route('orders.index')
-                ->with('success', 'Order berhasil dibatalkan');
+                ->with('success', 'Order #' . $order->id . ' berhasil dibatalkan.');
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->withErrors('Terjadi kesalahan saat memuat data.');
+            report($e);
+            return back()->withErrors('Terjadi kesalahan saat memproses pembatalan.');
         }
     }
 
@@ -106,15 +111,16 @@ class OrderController extends Controller
             ->select('orders.*', 'users.name as customer_name')
             ->whereIn('orders.status', ['done', 'paid']);
 
-        if ($request->has('search')) {
-            $search = $request->query('search');
-            $query->where(function ($q) use ($search) {
-                $q->where('users.name', 'like', "%{$search}%")
-                    ->orWhere('orders.id', 'like', "%{$search}%");
-            });
+        if ($request->filled('start_date') && $request->filled('end_date')) {
+            $start = $request->query('start_date');
+            $end = $request->query('end_date');
+            $query->whereBetween('orders.created_at', [$start . ' 00:00:00', $end . ' 23:59:59']);
         }
+
         $orders = $query->orderByDesc('orders.created_at')->get();
 
-        return view('control.order.index', compact('orders'));
+        $totalRevenue = $orders->sum('total_raw');
+
+        return view('control.order.index', compact('orders', 'totalRevenue'));
     }
 }

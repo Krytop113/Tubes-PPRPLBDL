@@ -5,7 +5,7 @@
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="{{ route('orders.index') }}" class="text-decoration-none">Orders</a></li>
-                <li class="breadcrumb-item active text-truncate" style="max-width: 200px;">{{ $order->order_id }}</li>
+                <li class="breadcrumb-item active text-truncate" style="max-width: 200px;">#{{ $order->id }}</li>
             </ol>
         </nav>
 
@@ -14,18 +14,18 @@
                 <i class="fas fa-arrow-left me-1"></i> KEMBALI KE DAFTAR PESANAN
             </a>
             <div class="d-flex justify-content-between align-items-center mt-2">
-                <h3 class="fw-bold mb-0">Detail Order <span class="text-primary">#{{ $order->order_id }}</span></h3>
+                <h3 class="fw-bold mb-0">Detail Order <span class="text-primary">#{{ $order->id }}</span></h3>
                 <div>
                     @php
                         $statusBadge = [
                             'pending' => 'bg-warning-subtle text-warning',
-                            'paid' => 'bg-info-subtle text-info',
-                            'done' => 'bg-success-subtle text-success',
-                            'cancel' => 'bg-danger-subtle text-danger',
+                            'paid'    => 'bg-info-subtle text-info',
+                            'order'   => 'bg-success-subtle text-success',
+                            'cancel'  => 'bg-danger-subtle text-danger',
                         ];
                     @endphp
-                    <span class="badge rounded-pill {{ $statusBadge[$order->order_status] ?? 'bg-secondary' }} px-3 py-2">
-                        {{ ucfirst($order->order_status) }}
+                    <span class="badge rounded-pill {{ $statusBadge[$order->status] ?? 'bg-secondary' }} px-3 py-2">
+                        {{ ucfirst($order->status) }}
                     </span>
                 </div>
             </div>
@@ -52,14 +52,12 @@
                                     <tr>
                                         <td class="ps-3">
                                             <div class="d-flex align-items-center">
-                                                @if ($item->ingredient_image)
+                                                @if (isset($item->ingredient_image) && $item->ingredient_image)
                                                     <img src="{{ asset('storage/' . $item->ingredient_image) }}"
                                                         class="rounded me-2" width="40">
                                                 @endif
                                                 <div>
-                                                    <div class="fw-bold text-dark">{{ $item->ingredient_name }}
-                                                        ({{ $item->ingredient_unit }})
-                                                    </div>
+                                                    <div class="fw-bold text-dark">{{ $item->ingredient_name }}</div>
                                                     <small class="text-muted">{{ $item->ingredient_unit }}</small>
                                                 </div>
                                             </div>
@@ -82,24 +80,21 @@
                     <div class="card-body p-4">
                         <h6 class="fw-bold mb-3">Ringkasan Pembayaran</h6>
 
-                        @if ($order->order_status === 'paid' || $order->order_status === 'done')
+                        @if ($order->status === 'paid' || $order->status === 'order')
                             <div class="d-flex justify-content-between mb-2 small">
                                 <span class="text-muted">Total Belanja</span>
-                                <span class="fw-bold text-dark">Rp
-                                    {{ number_format($order->order_total_raw, 0, ',', '.') }}</span>
+                                <span class="fw-bold text-dark">Rp {{ number_format($order->total_raw, 0, ',', '.') }}</span>
                             </div>
 
                             <div class="d-flex justify-content-between mb-2 small">
                                 <span class="text-muted">Ongkos Kirim</span>
-                                <span class="fw-bold text-dark">Rp
-                                    {{ number_format($payment->shipping_cost ?? 0, 0, ',', '.') }}</span>
+                                <span class="fw-bold text-dark">Rp {{ number_format($payment->shipping_cost ?? 0, 0, ',', '.') }}</span>
                             </div>
 
                             @if (($payment->coupon_amount ?? 0) > 0)
                                 <div class="d-flex justify-content-between mb-2 small">
                                     <span class="text-success">Potongan Kupon</span>
-                                    <span class="text-success fw-bold">- Rp
-                                        {{ number_format($payment->coupon_amount, 0, ',', '.') }}</span>
+                                    <span class="text-success fw-bold">- Rp {{ number_format($payment->coupon_amount, 0, ',', '.') }}</span>
                                 </div>
                             @endif
 
@@ -107,25 +102,23 @@
 
                             <div class="d-flex justify-content-between mb-4">
                                 <span class="fw-bold text-dark">Total Bayar</span>
-                                <span class="fw-bold text-primary fs-5">Rp
-                                    {{ number_format($payment->total_amount ?? $order->order_total_raw, 0, ',', '.') }}</span>
+                                <span class="fw-bold text-primary fs-5">Rp {{ number_format($payment->total_amount ?? $order->total_raw, 0, ',', '.') }}</span>
                             </div>
 
                             <div class="d-grid gap-2">
-                                <button type="button" onclick="window.print()"
-                                    class="btn btn-outline-primary fw-bold py-2 rounded-3">
+                                <button type="button" onclick="window.print()" class="btn btn-outline-primary fw-bold py-2 rounded-3">
                                     <i class="fas fa-print me-2"></i> CETAK NOTA
                                 </button>
                             </div>
-                        @else
+                        
+                        @elseif($order->status === 'pending')
                             <form action="{{ route('payment') }}" method="POST" id="paymentForm">
                                 @csrf
-                                <input type="hidden" name="order_id" value="{{ $order->order_id }}">
+                                <input type="hidden" name="order_id" value="{{ $order->id }}">
 
                                 <div class="d-flex justify-content-between mb-2 small">
                                     <span class="text-muted">Total Belanja</span>
-                                    <span class="fw-bold text-dark">Rp
-                                        {{ number_format($order->order_total_raw, 0, ',', '.') }}</span>
+                                    <span class="fw-bold text-dark">Rp {{ number_format($order->total_raw, 0, ',', '.') }}</span>
                                 </div>
 
                                 <div class="d-flex justify-content-between mb-2 small">
@@ -144,62 +137,58 @@
 
                                 <div class="d-flex justify-content-between mb-4">
                                     <span class="fw-bold text-dark">Total Bayar</span>
-                                    <span class="fw-bold text-primary fs-5">Rp <span
-                                            id="totalAkhirDisplay">{{ number_format($order->order_total_raw, 0, ',', '.') }}</span></span>
+                                    <span class="fw-bold text-primary fs-5">Rp <span id="totalAkhirDisplay">{{ number_format($order->total_raw, 0, ',', '.') }}</span></span>
                                 </div>
 
-                                @if ($order->order_status === 'pending')
-                                    <div class="mb-3 bg-light p-3 rounded-3 border border-primary-subtle">
-                                        <h6 class="fw-bold x-small text-uppercase mb-3 text-primary">
-                                            <i class="fas fa-truck me-1"></i> Pengiriman Area Bandung
-                                        </h6>
-                                        <div class="mb-2">
-                                            <label class="x-small text-muted fw-bold">KECAMATAN TUJUAN</label>
-                                            <select name="destination_area" id="destinationArea"
-                                                class="form-select form-select-sm" required>
-                                                <option value="" data-cost="0">-- Pilih Kecamatan --</option>
-                                                <optgroup label="Zona 1 (Rp 10.000)">
-                                                    <option value="Coblong" data-cost="10000">Coblong</option>
-                                                    <option value="Lengkong" data-cost="10000">Lengkong</option>
-                                                </optgroup>
-                                                <optgroup label="Zona 2 (Rp 15.000 - 20.000)">
-                                                    <option value="Sukajadi" data-cost="15000">Sukajadi</option>
-                                                    <option value="Antapani" data-cost="18000">Antapani</option>
-                                                    <option value="Arcamanik" data-cost="20000">Arcamanik</option>
-                                                </optgroup>
-                                            </select>
-                                        </div>
-                                        <input type="hidden" name="shipping_cost" id="shippingCostInput"
-                                            value="0">
-                                    </div>
-
-                                    <div class="mb-3">
-                                        <h6 class="fw-bold x-small text-uppercase mb-2">Gunakan Kupon</h6>
-                                        <select name="coupon_user_id" class="form-select form-select-sm"
-                                            id="couponSelect">
-                                            <option value="" data-discount="0">-- Pilih Kupon --</option>
-                                            @foreach ($couponUsers as $cu)
-                                                <option value="{{ $cu->coupon_user_id }}"
-                                                    data-discount="{{ $cu->discount_percentage }}">
-                                                    {{ $cu->title }} ({{ $cu->discount_percentage }}%)
-                                                </option>
-                                            @endforeach
+                                <div class="mb-3 bg-light p-3 rounded-3 border border-primary-subtle">
+                                    <h6 class="fw-bold x-small text-uppercase mb-3 text-primary">
+                                        <i class="fas fa-truck me-1"></i> Pengiriman Area Bandung
+                                    </h6>
+                                    <div class="mb-2">
+                                        <label class="x-small text-muted fw-bold">KECAMATAN TUJUAN</label>
+                                        <select name="destination_area" id="destinationArea" class="form-select form-select-sm" required>
+                                            <option value="" data-cost="0">-- Pilih Kecamatan --</option>
+                                            <optgroup label="Zona 1 (Rp 10.000)">
+                                                <option value="Coblong" data-cost="10000">Coblong</option>
+                                                <option value="Lengkong" data-cost="10000">Lengkong</option>
+                                            </optgroup>
+                                            <optgroup label="Zona 2 (Rp 15.000 - 20.000)">
+                                                <option value="Sukajadi" data-cost="15000">Sukajadi</option>
+                                                <option value="Antapani" data-cost="18000">Antapani</option>
+                                                <option value="Arcamanik" data-cost="20000">Arcamanik</option>
+                                            </optgroup>
                                         </select>
                                     </div>
+                                    <input type="hidden" name="shipping_cost" id="shippingCostInput" value="0">
+                                </div>
 
-                                    <div class="d-grid gap-2">
-                                        <button type="submit" id="btnSubmitPayment"
-                                            class="btn btn-primary fw-bold py-3 rounded-3 shadow-sm" disabled>
-                                            LANJUT KE PEMBAYARAN <i class="fas fa-chevron-right ms-2"></i>
-                                        </button>
-                                        <button type="button"
-                                            class="btn btn-link text-danger btn-sm fw-bold text-decoration-none"
-                                            data-bs-toggle="modal" data-bs-target="#cancelOrderModal">
-                                            Batalkan Pesanan
-                                        </button>
-                                    </div>
-                                @endif
+                                <div class="mb-3">
+                                    <h6 class="fw-bold x-small text-uppercase mb-2">Gunakan Kupon</h6>
+                                    <select name="coupon_user_id" class="form-select form-select-sm" id="couponSelect">
+                                        <option value="" data-discount="0">-- Pilih Kupon --</option>
+                                        @foreach ($couponUsers as $cu)
+                                            <option value="{{ $cu->coupon_user_id }}" data-discount="{{ $cu->discount_percentage }}">
+                                                {{ $cu->title }} ({{ $cu->discount_percentage }}%)
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                <div class="d-grid gap-2">
+                                    <button type="submit" id="btnSubmitPayment" class="btn btn-primary fw-bold py-3 rounded-3 shadow-sm" disabled>
+                                        LANJUT KE PEMBAYARAN <i class="fas fa-chevron-right ms-2"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-link text-danger btn-sm fw-bold text-decoration-none"
+                                        data-bs-toggle="modal" data-bs-target="#cancelOrderModal">
+                                        Batalkan Pesanan
+                                    </button>
+                                </div>
                             </form>
+                        @else
+                            <div class="text-center py-3">
+                                <i class="fas fa-times-circle text-danger fa-3x mb-2"></i>
+                                <p class="text-muted small">Pesanan ini telah dibatalkan.</p>
+                            </div>
                         @endif
                     </div>
                 </div>
@@ -213,9 +202,11 @@
                 <div class="modal-body text-center p-4">
                     <i class="fas fa-exclamation-triangle fa-3x text-danger mb-3"></i>
                     <h5 class="fw-bold">Batalkan Pesanan?</h5>
+                    <p class="small text-muted">Tindakan ini tidak dapat dibatalkan.</p>
                     <div class="d-grid gap-2 mt-4">
-                        <form action="{{ route('orders.cancel', $order->order_id) }}" method="POST">
-                            @csrf @method('PUT')
+                        <form action="{{ route('orders.cancel', $order->id) }}" method="POST">
+                            @csrf
+                            @method('PUT')
                             <button type="submit" class="btn btn-danger w-100 fw-bold">Ya, Batalkan</button>
                         </form>
                         <button type="button" class="btn btn-light w-100" data-bs-dismiss="modal">Tutup</button>
@@ -225,35 +216,9 @@
         </div>
     </div>
 
-    <style>
-        .x-small {
-            font-size: 0.75rem;
-        }
-
-        .bg-warning-subtle {
-            background-color: #fff3cd;
-            color: #856404;
-        }
-
-        .bg-info-subtle {
-            background-color: #cff4fc;
-            color: #055160;
-        }
-
-        .bg-success-subtle {
-            background-color: #d1e7dd;
-            color: #0f5132;
-        }
-
-        .bg-danger-subtle {
-            background-color: #f8d7da;
-            color: #842029;
-        }
-    </style>
-
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const totalRaw = parseInt("{{ $order->order_total_raw }}");
+            const totalRaw = parseInt("{{ $order->total_raw }}");
             let currentOngkir = 0;
             let currentDiscountPercent = 0;
 
@@ -283,18 +248,19 @@
                 el.displayTotal.innerText = grandTotal.toLocaleString('id-ID');
             }
 
-            el.area.addEventListener('change', function() {
-                const cost = parseInt(this.options[this.selectedIndex].getAttribute('data-cost')) || 0;
-                currentOngkir = cost;
-                el.costInput.value = cost;
-                el.btnSubmit.disabled = (cost === 0);
-                calculateFinal();
-            });
+            if(el.area) {
+                el.area.addEventListener('change', function() {
+                    const cost = parseInt(this.options[this.selectedIndex].getAttribute('data-cost')) || 0;
+                    currentOngkir = cost;
+                    el.costInput.value = cost;
+                    el.btnSubmit.disabled = (cost === 0);
+                    calculateFinal();
+                });
+            }
 
             if (el.coupon) {
                 el.coupon.addEventListener('change', function() {
-                    currentDiscountPercent = parseInt(this.options[this.selectedIndex].getAttribute(
-                        'data-discount')) || 0;
+                    currentDiscountPercent = parseInt(this.options[this.selectedIndex].getAttribute('data-discount')) || 0;
                     calculateFinal();
                 });
             }

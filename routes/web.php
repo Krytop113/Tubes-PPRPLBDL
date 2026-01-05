@@ -158,9 +158,9 @@ Route::middleware(['auth', 'role:customer,employee,admin'])
 
         Route::get('/orders', [OrderController::class, 'orders'])
             ->name('orders.index');
-        Route::get('/orders/{id}', [OrderController::class, 'orderDetail'])
+        Route::get('/orders/{order}', [OrderController::class, 'orderDetail'])
             ->name('orders.show');
-        Route::put('/orders/{id}/cancel', [OrderController::class, 'cancel'])
+        Route::put('/orders/{order}/cancel', [OrderController::class, 'cancel'])
             ->name('orders.cancel');
 
         Route::get('/payment', function () {

@@ -4,11 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\CouponUser;
 use Illuminate\Http\Request;
-use App\Models\Coupon;
-use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Models\Order;
+use App\Http\Controllers\Controller;
+use Exception;
 
 class CouponUserController extends Controller
 {
@@ -18,21 +18,39 @@ class CouponUserController extends Controller
             'coupon_user_id' => 'required|exists:coupon_users,id',
         ]);
 
-        $couponUser = CouponUser::with('coupon')
-            ->where('id', $request->coupon_user_id)
-            ->where('user_id', Auth::id())
-            ->where('status', 'unused')
-            ->firstOrFail();
+        DB::beginTransaction();
 
-        $discount = ($couponUser->coupon->discount / 100) * $order->total_raw;
-        $order->total_raw -= $discount;
-        $order->save();
+        try {
+            $couponUser = CouponUser::with('coupon')
+                ->where('id', $request->coupon_user_id)
+                ->where('user_id', Auth::id())
+                ->where('status', 'unused')
+                ->first();
 
-        DB::statement(
-            'CALL update_couponuser_procedure(?, ?)',
-            [Auth::id(), $couponUser->id]
-        );
+            if (!$couponUser) {
+                return back()->with('error', 'Kupon tidak tersedia atau sudah digunakan.');
+            }
 
-        return back()->with('success', 'Kupon berhasil diterapkan');
+            $discount = ($couponUser->coupon->discount / 100) * $order->total_raw;
+            $order->total_raw -= $discount;
+            $order->save();
+
+            $result = DB::select(
+                'CALL update_couponuser_procedure(?, ?)',
+                [Auth::id(), $couponUser->id]
+            );
+
+            if (!empty($result) && isset($result[0]->ErrorDetail)) {
+                throw new Exception($result[0]->ErrorDetail);
+            }
+
+            DB::commit();
+
+            return back()->with('success', 'Kupon berhasil diterapkan. Total tagihan Anda telah diperbarui.');
+        } catch (Exception $e) {
+            DB::rollBack();
+
+            return back()->withErrors("Gagal menerapkan kupon: " . $e->getMessage());
+        }
     }
 }

@@ -58,7 +58,6 @@ class IngredientController extends Controller
             ->when($search, function ($query) use ($search) {
                 $query->where('name', 'like', '%' . $search . '%');
             })
-            ->latest()
             ->get();
 
         return view('control.ingredients.index', compact('ingredients', 'categories', 'selectedCategory', 'search'));
