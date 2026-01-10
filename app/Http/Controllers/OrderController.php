@@ -8,15 +8,17 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Order;
 use App\Http\Controllers\NotificationController;
+use App\Models\Payment;
 
 class OrderController extends Controller
 {
     // Customer View
     public function orders(Request $request)
     {
-        $status = $request->query('status');
+        $status = $request->status;
 
-        $query = DB::table('orders')
+
+        $query = Order::with('user')
             ->where('user_id', Auth::id());
 
         if ($status) {
@@ -40,7 +42,7 @@ class OrderController extends Controller
         }
 
         try {
-            $payment = DB::table('payments')
+            $payment = Payment::with('payments')
                 ->where('order_id', $order->id)
                 ->first();
 
@@ -77,16 +79,24 @@ class OrderController extends Controller
         DB::beginTransaction();
 
         try {
-            DB::statement('CALL edit_orders_procedure(?, ?)', [
+            $result = DB::select('CALL edit_orders_procedure(?, ?)', [
                 $order->id,
                 'cancel'
             ]);
 
+            if (!empty($result) && isset($result[0]->ErrorDetail)) {
+                throw new \Exception($result[0]->ErrorDetail);
+            }
+
             foreach ($order->order_details as $detail) {
-                DB::statement('CALL edit_orderdetail_procedure(?, ?)', [
+                $result = DB::statement('CALL edit_orderdetail_procedure(?, ?)', [
                     $detail->id,
                     'cancel'
                 ]);
+
+                if (!empty($result) && isset($result[0]->ErrorDetail)) {
+                    throw new \Exception($result[0]->ErrorDetail);
+                }
             }
 
             NotificationController::orderCancel($userId, $order->id);
@@ -105,7 +115,7 @@ class OrderController extends Controller
 
     // Control Panel View
     public function indexcontrol(Request $request)
-    {
+    {   
         $query = DB::table('orders')
             ->join('users', 'orders.user_id', '=', 'users.id')
             ->select('orders.*', 'users.name as customer_name')

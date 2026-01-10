@@ -49,8 +49,8 @@ class CouponUserController extends Controller
             return back()->with('success', 'Kupon berhasil diterapkan. Total tagihan Anda telah diperbarui.');
         } catch (Exception $e) {
             DB::rollBack();
-
-            return back()->withErrors("Gagal menerapkan kupon: " . $e->getMessage());
+            report($e);
+            return back()->withErrors("Gagal menerapkan kupon ke dalam pembelian");
         }
     }
 }

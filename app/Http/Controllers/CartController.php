@@ -121,7 +121,8 @@ class CartController extends Controller
                 "name"       => $ingredient->name,
                 "quantity"   => $request->quantity,
                 "price"      => $ingredient->price_per_unit,
-                "image"      => $ingredient->image_url
+                "image"      => $ingredient->image_url,
+                "unit"       => $ingredient->unit
             ];
         }
 
@@ -203,12 +204,16 @@ class CartController extends Controller
             $order = DB::table('orders')->where('user_id', Auth::id())->latest()->first();
 
             foreach ($itemsToCheckout as $id => $item) {
-                DB::statement('CALL create_orderdetail_procedure(?, ?, ?, ?)', [
+                $result = DB::statement('CALL create_orderdetail_procedure(?, ?, ?, ?)', [
                     $order->id,
                     $item['product_id'],
                     $item['quantity'],
                     $item['price']
                 ]);
+
+                if (!empty($result) && isset($result[0]->ErrorDetail)) {
+                    throw new \Exception($result[0]->ErrorDetail);
+                }
 
                 unset($cart[$id]);
             }
@@ -222,7 +227,8 @@ class CartController extends Controller
             return redirect()->route('orders.index')->with('success', 'Checkout berhasil!');
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->withErrors('Error: ' . $e->getMessage());
+            report($e);
+            return back()->withErrors('Terjadi sebuah kesalahan saat melakukan checkout.');
         }
     }
 }

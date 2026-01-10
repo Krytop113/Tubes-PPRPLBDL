@@ -17,8 +17,8 @@ use App\Http\Controllers\Auth\SignupController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\CouponController;
-use App\Http\Controllers\OngkirController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\logController;
 
 Route::get('/login', function () {
     return view('auth.login');
@@ -68,7 +68,8 @@ Route::post('/register', function (Request $request) {
 // })->middleware(['auth', 'throttle:6,1'])->name('verification.send');
 
 // Home Divider
-Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/', [HomeController::class, 'index'])
+    ->name('home');
 
 Auth::routes();
 
@@ -106,17 +107,36 @@ Route::middleware(['auth', 'role:admin,employee'])
         Route::get('/control/recipes/{recipe}', [RecipeController::class, 'edit'])
             ->name('control.recipes.edit');
 
+        // control Order
         Route::get('/control/orders', [OrderController::class, 'indexcontrol'])
             ->name('control.orders.index');
         Route::get('/control/orders/{id}', [OrderController::class, 'recap'])
             ->name('control.orders.recap');
 
+        // control Coupons
         Route::get('/control/coupons', [CouponController::class, 'indexcontrol'])
             ->name('control.coupons.index');
         Route::get('/control/coupons/create', [CouponController::class, 'create'])
             ->name('control.coupons.create');
         Route::get('/control/coupons/{coupon}', [CouponController::class, 'edit'])
             ->name('control.coupons.edit');
+
+        // control user
+        /// Customer
+        Route::get('/control/customer/index', [UserController::class, 'indexCustomer'])
+            ->name('control.customer');
+
+        /// Employee
+        Route::get('/control/employee/index', [UserController::class, 'indexEmployee'])
+            ->name('control.employee');
+        Route::get('/control/employee/create', [UserController::class, 'createEmployee'])
+            ->name('control.employee.create');
+        Route::post('/control/employee/store', [UserController::class, 'storeEmployee'])
+            ->name('control.employee.store');
+
+        //log
+        Route::get('/log', [logController::class, 'index'])
+            ->name('control.log');
     });
 
 // Customer Panel
@@ -142,7 +162,7 @@ Route::middleware(['auth', 'role:customer,employee,admin'])
             ->name('cart.index');
         Route::post('/cart/add', [CartController::class, 'addToCart'])
             ->name('cart.add');
-        Route::patch('/cart/item/{id}', [CartController::class, 'updateQty'])
+        Route::get('/cart/item/{id}', [CartController::class, 'updateQty'])
             ->name('cart.update');
         Route::delete('/cart/item/{id}', [CartController::class, 'deleteItem'])
             ->name('cart.deleteItem');

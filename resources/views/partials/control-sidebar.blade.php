@@ -41,17 +41,20 @@
         @if ($role === 'admin')
             <div class="sidebar-heading mt-4">Manajemen User</div>
 
-            <a href="#" class="nav-link {{ request()->is('control/users*') ? 'active' : '' }}">
+            <a href="{{ route('control.customer') }}"
+                class="nav-link {{ request()->is('control/customer*') ? 'active' : '' }}">
                 <i class="fas fa-users"></i> Daftar Pengguna
             </a>
 
-            <a href="#" class="nav-link {{ request()->is('control/employees*') ? 'active' : '' }}">
+            <a href="{{ route('control.employee') }}"
+                class="nav-link {{ request()->is('control/employee*') ? 'active' : '' }}">
                 <i class="fas fa-id-badge"></i> Daftar Karyawan
             </a>
 
             <div class="sidebar-heading mt-4">Sistem</div>
 
-            <a href="#" class="nav-link {{ request()->is('control/reports*') ? 'active' : '' }}">
+            <a href="{{ route('control.log') }}" 
+                class="nav-link {{ request()->is('control/log*') ? 'active' : '' }}">
                 <i class="fas fa-chart-bar"></i> Reports
             </a>
 

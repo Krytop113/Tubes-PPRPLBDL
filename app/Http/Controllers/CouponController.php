@@ -46,7 +46,8 @@ class CouponController extends Controller
             return redirect()->back()->with('success', 'Kupon berhasil diklaim!');
         } catch (Exception $e) {
             DB::rollBack();
-            return redirect()->back()->with('error', 'Gagal klaim: ' . $e);
+            report($e);
+            return redirect()->back()->with('Terjadi error ketika menerima Kupon');
         }
     }
 

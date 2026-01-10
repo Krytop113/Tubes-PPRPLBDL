@@ -7,7 +7,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // --- TRIGGER UNTUK INGREDIENT ---
+        // Ingredient
         DB::unprepared('
             CREATE TRIGGER log_ingredient_insert AFTER INSERT ON ingredients
             FOR EACH ROW BEGIN
@@ -48,7 +48,7 @@ return new class extends Migration
             END;
         ');
 
-        // --- TRIGGER UNTUK RECIPE ---
+        // Recipe
         DB::unprepared('
             CREATE TRIGGER log_recipe_insert AFTER INSERT ON recipes
             FOR EACH ROW BEGIN
@@ -84,7 +84,7 @@ return new class extends Migration
             END;
         ');
 
-        // --- TRIGGER UNTUK COUPON ---
+        // Coupon
         DB::unprepared('
             CREATE TRIGGER log_coupon_insert AFTER INSERT ON coupons
             FOR EACH ROW BEGIN

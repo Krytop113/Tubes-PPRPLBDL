@@ -19,14 +19,21 @@ class NotificationController extends Controller
         $subject,
         $message
     ): void {
-        DB::select("CALL create_notification_procedure(?, ?, ?, ?, ?, ?)", [
-            $title,
-            $subject,
-            $message,
-            Carbon::now(),
-            'unread',
-            $userId
-        ]);
+        try {
+            $result = DB::select("CALL create_notification_procedure(?, ?, ?, ?, ?, ?)", [
+                $title,
+                $subject,
+                $message,
+                Carbon::now(),
+                'unread',
+                $userId
+            ]);
+            if (!empty($result) && isset($result[0]->ErrorDetail)) {
+                throw new Exception($result[0]->ErrorDetail);
+            }
+        } catch (Exception $e) {
+            report($e);
+        }
     }
 
     public static function userRegistered(User $user): void
@@ -107,7 +114,8 @@ class NotificationController extends Controller
                 ->with('success', 'Notification deleted successfully.');
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->back()->withErrors(['error' => 'Gagal menghapus notifikasi: ' . $e->getMessage()]);
+            report($e);
+            return redirect()->back()->withErrors('Gagal menghapus notifikasi.');
         }
     }
 }

@@ -58,6 +58,7 @@ class IngredientController extends Controller
             ->when($search, function ($query) use ($search) {
                 $query->where('name', 'like', '%' . $search . '%');
             })
+            ->orderBy('name','asc')
             ->get();
 
         return view('control.ingredients.index', compact('ingredients', 'categories', 'selectedCategory', 'search'));
@@ -79,7 +80,7 @@ class IngredientController extends Controller
             'minimum_stock_level' => 'required|integer',
             'description' => 'required',
             'ingredient_category_id' => 'required',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048'
+            'image' => 'nullable|image|mimes:jpeg,jpg|max:2048'
         ]);
 
         try {
@@ -91,7 +92,6 @@ class IngredientController extends Controller
                 $twoWords = array_slice($words, 0, 2);
                 $baseName = Str::slug(implode('_', $twoWords), '_');
                 $fileName = $baseName . '_' . time() . '.jpg';
-                $file->move(public_path('ingredients'), $fileName);
             }
 
             $result = DB::select("CALL create_ingredient_procedure(?, ?, ?, ?, ?, ?, ?, ?)", [
@@ -109,14 +109,16 @@ class IngredientController extends Controller
                 throw new Exception($result[0]->ErrorDetail);
             }
 
+            $file->move(public_path('ingredients'), $fileName);
+
             return redirect()->route('control.ingredients.index')
                 ->with('success', 'Bahan baku ' . $request->name . ' berhasil disimpan!');
         } catch (Exception $e) {
             if ($fileName) {
                 Storage::disk('public')->delete($fileName);
             }
-
-            return back()->withErrors('Gagal menyimpan: ' . $e->getMessage())->withInput();
+            report($e);
+            return back()->withErrors('Gagal menyimpan data');
         }
     }
 
@@ -145,27 +147,24 @@ class IngredientController extends Controller
 
         $oldImageUrl = $ingredient->image_url;
         $newImageUrl = $oldImageUrl;
+        $words = explode(' ', $request->name);
+        $twoWords = array_slice($words, 0, 2);
+        $baseName = Str::slug(implode(' ', $twoWords), '_');
 
-        try {
-            $words = explode(' ', $request->name);
-            $twoWords = array_slice($words, 0, 2);
-            $baseName = Str::slug(implode(' ', $twoWords), '_');
+        if ($request->hasFile('image') && $newImageUrl !== $oldImageUrl) {
+            $file = $request->file('image');
+            $newImageUrl = $baseName . '_' . time() . '.jpg';
 
-            if ($request->hasFile('image')) {
-                $file = $request->file('image');
-                $newImageUrl = $baseName . '_' . time() . '.jpg';
-
-                if ($oldImageUrl && file_exists(public_path('ingredients/' . $oldImageUrl))) {
-                    unlink(public_path('ingredients/' . $oldImageUrl));
-                }
-
-                $file->move(public_path('ingredients'), $newImageUrl);
-            } else if ($oldImageUrl && $ingredient->name !== $request->name) {
-                $newImageUrl = $baseName . '_' . time() . '.jpg';
-
-                rename(public_path('ingredients/' . $oldImageUrl), public_path('ingredients/' . $newImageUrl));
+            if ($oldImageUrl && file_exists(public_path('ingredients/' . $oldImageUrl))) {
+                unlink(public_path('ingredients/' . $oldImageUrl));
             }
 
+            $file->move(public_path('ingredients'), $newImageUrl);
+        } else if ($oldImageUrl && $ingredient->name !== $request->name) {
+            $newImageUrl = $baseName . '_' . time() . '.jpg';
+        }
+
+        try {
             $result = DB::select('CALL edit_ingredient_procedure(?, ?, ?, ?, ?, ?, ?, ?, ?)', [
                 $ingredient->id,
                 $request->name,
@@ -182,14 +181,16 @@ class IngredientController extends Controller
                 throw new \Exception($result[0]->ErrorDetail);
             }
 
+            rename(public_path('ingredients/' . $oldImageUrl), public_path('ingredients/' . $newImageUrl));
+
             return redirect()->route('control.ingredients.index')
                 ->with('success', 'Bahan baku ' . $ingredient->name . ' berhasil diperbarui!');
         } catch (\Exception $e) {
             if ($newImageUrl !== $oldImageUrl) {
                 Storage::disk('public')->delete($newImageUrl);
             }
-
-            return back()->withErrors('Gagal memperbarui: ' . $e->getMessage())->withInput();
+            report($e);
+            return back()->withErrors('Gagal memperbarui data');
         }
     }
 
@@ -208,7 +209,8 @@ class IngredientController extends Controller
 
             return redirect()->route('control.ingredients.index')->with('success', $ingredient->name . ' Berhasil dihapus!');
         } catch (\Exception $e) {
-            return back()->withErrors($e->getMessage());
+            report($e);
+            return back()->withErrors('Gagal menghapus');
         }
     }
 
@@ -222,7 +224,7 @@ class IngredientController extends Controller
 
         try {
             foreach ($request->updates as $update) {
-                $ingredient = DB::table('ingredients')->where('id', $update['id'])->first();
+                $ingredient = Ingredient::with('ingredients')->where('id', $update['id'])->first();
 
                 $newTotalStock = $ingredient->stock_quantity + $update['amount'];
 
@@ -247,7 +249,8 @@ class IngredientController extends Controller
             return redirect()->back()->with('success', 'Stok berhasil diperbarui!');
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->back()->withErrors(['error' => 'Gagal memperbarui stok: ' . $e->getMessage()]);
+            report($e);
+            return redirect()->back()->withErrors('Gagal memperbarui stok');
         }
     }
 }

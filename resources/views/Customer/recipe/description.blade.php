@@ -11,7 +11,7 @@
 
         <div class="row g-5">
             <div class="col-lg-5">
-                <img src="{{ asset('storage/' . $recipe->image_url) }}" class="img-fluid shadow-sm mb-4"
+                <img src="{{ asset('recipes/' . $recipe->image_url) }}" class="img-fluid shadow-sm mb-4"
                     style="border-radius: 20px; width: 100%; height: 350px; object-fit: cover;">
 
                 <div class="bg-light p-4" style="border-radius: 20px;">
@@ -40,6 +40,9 @@
                         <span class="fw-bold text-primary">{{ $recipe->serving }} Porsi</span>
                     </div>
                 </div>
+
+                <h5 class="fw-bold">Deskripsi</h5>
+                <p class="text-secondary mb-5" style="white-space: pre-line; line-height: 1.8">{{ $recipe->description }}</p>
 
                 <h5 class="fw-bold">Cara Memasak</h5>
                 <p class="text-secondary mb-5" style="white-space: pre-line; line-height: 1.8;">{{ $recipe->steps }}</p>

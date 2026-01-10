@@ -9,6 +9,7 @@ use Exception;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\NotificationController;
+use App\Models\Ingredient;
 
 class PaymentController extends Controller
 {
@@ -20,10 +21,10 @@ class PaymentController extends Controller
         $couponUserId = $request->coupon_user_id;
 
         $couponAmount = 0;
+
         if ($couponUserId) {
-            $couponUser = DB::table('coupon_users')
-                ->join('coupons', 'coupon_users.coupon_id', '=', 'coupons.id')
-                ->where('coupon_users.id', $couponUserId)
+            $couponUser = DB::table('vw_user_coupons_detailed')
+                ->where('coupon_user_id', $couponUserId)
                 ->first();
 
             if ($couponUser) {
@@ -62,40 +63,44 @@ class PaymentController extends Controller
                 (int) $request->order_id,
                 $request->coupon_user_id ? (int) $request->coupon_user_id : null
             ]);
-            
-            $this->afterPayment($order);
-
-            DB::commit();
 
             if (!empty($result) && isset($result[0]->ErrorDetail)) {
                 throw new \Exception($result[0]->ErrorDetail);
             }
+
+            $this->afterPayment($order);
+
+            DB::commit();
 
             NotificationController::orderProcessing(Auth::id(), $request->order_id);
 
             return redirect()->route('orders.index')->with('success', 'Pembayaran berhasil dikonfirmasi!');
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->withErrors('Gagal melakukan pembayaran: ' . $e->getMessage());
+            report($e);
+            return back()->withErrors('Gagal melakukan pembayaran');
         }
     }
 
+    // bisa diganti jadi trigger
     public function afterPayment(Order $order): void
     {
-        if (empty($order->order_details)){
-            throw new Exception("Detail pesanan tidak ditemukan."); 
+        if (empty($order->order_details)) {
+            throw new Exception("Detail pesanan tidak ditemukan.");
         }
 
         foreach ($order->order_details as $detail) {
-            $ingredient = DB::table('ingredients')->where('id', $detail->ingredient_id)->first();
+            $ingredient = Ingredient::with('ingredients')->where('id', $detail->ingredient_id)->first();
 
-            if (!$ingredient){
+            if (!$ingredient) {
                 throw new Exception("Bahan tidak ditemukan.");
             }
 
             $newTotalStock = $ingredient->stock_quantity - $detail->quantity;
 
-            DB::statement("CALL edit_ingredient_procedure(?, ?, ?, ?, ?, ?, ?, ?, ?)", [
+            DB::beginTransaction();
+            try{
+                $result = DB::select("CALL edit_ingredient_procedure(?, ?, ?, ?, ?, ?, ?, ?, ?)", [
                 $detail->ingredient_id,
                 null,
                 null,
@@ -106,6 +111,16 @@ class PaymentController extends Controller
                 null,
                 null
             ]);
+            if (!empty($result) && isset($result[0]->ErrorDetail)) {
+                throw new \Exception($result[0]->ErrorDetail);
+            }
+            DB::commit();
+
+            }catch (\Exception $e) {
+                DB::rollBack();
+                report($e);
+                back()->withErrors('Gagal memperbarui stok');
+            }
         }
     }
 }

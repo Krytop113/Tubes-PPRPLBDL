@@ -54,7 +54,7 @@ class RecipeController extends Controller
             ->when($search, function ($query) use ($search) {
                 $query->where('name', 'like', '%' . $search . '%');
             })
-            ->latest()
+            ->orderBy('name','asc')
             ->get();
 
         return view('control.recipe.index', compact('recipes', 'categories', 'selectedCategory', 'search'));
@@ -88,6 +88,11 @@ class RecipeController extends Controller
 
     public function destroy(Recipe $recipe)
     {
+        if (empty($recipe)) {
+            return back()->withErrors('Data tidak ditemukan');
+        }
+
+        DB::beginTransaction();
         try {
             $result = DB::select('CALL delete_ingredient_procedure(?)', [$recipe->id]);
 
@@ -95,13 +100,17 @@ class RecipeController extends Controller
                 throw new \Exception($result[0]->ErrorDetail);
             }
 
+            DB::commit();
+
             if ($recipe->image_url && file_exists(public_path('recipes/' . $recipe->image_url))) {
                 unlink(public_path('recipes/' . $recipe->image_url));
             }
 
             return redirect()->route('control.recipe.index')->with('success', $$recipe->name . ' Berhasil dihapus!');
+            
         } catch (\Exception $e) {
-            return back()->withErrors($e->getMessage());
+            report($e);
+            return back()->withErrors('Gagal menghapus Resep');
         }
     }
 }
