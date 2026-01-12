@@ -5,6 +5,21 @@
 
 @section('content')
     <div class="container-fluid">
+        @if (session('success'))
+            <div class="alert alert-success border-0 shadow-sm mb-4">
+                <i class="fas fa-check-circle me-2"></i> {{ session('success') }}
+            </div>
+        @endif
+
+        @if ($errors->any())
+            <div class="alert alert-danger border-0 shadow-sm mb-4">
+                <ul class="mb-0">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
 
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h3 class="fw-bold text-dark mb-0">List Resep</h3>
@@ -40,7 +55,7 @@
 
                     <div class="col-md-3 d-flex gap-2">
                         <button type="submit" class="btn btn-secondary w-100">Filter</button>
-                        <a href="" class="btn btn-outline-secondary">
+                        <a href="{{ route('control.recipes.index') }}" class="btn btn-outline-secondary">
                             <i class="fas fa-redo"></i>
                         </a>
                     </div>
@@ -55,7 +70,7 @@
                         <thead class="bg-light">
                             <tr>
                                 <th class="ps-4" style="width: 50px;">No</th>
-                                <th>Nama Bahan</th>
+                                <th>Nama Resep</th>
                                 <th>Kategori</th>
                                 <th class="text-end pe-4">Aksi</th>
                             </tr>
@@ -74,16 +89,18 @@
                                     </td>
                                     <td class="text-end pe-4">
                                         <div class="btn-group gap-2">
-                                            <a href="" class="btn btn-sm btn-outline-warning rounded border-0">
+                                            <a href="{{ route('control.recipes.edit', $item->id) }}"
+                                                class="btn btn-sm btn-outline-warning rounded border-0">
                                                 <i class="fas fa-edit"></i>
                                             </a>
 
-                                            <form action="" method="POST" class="d-inline"
-                                                onsubmit="return confirm('Yakin ingin menghapus bahan ini?')">
+                                            <form action="{{ route('control.recipes.destroy', $item->id) }}" method="POST"
+                                                class="d-inline delete-form">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit"
-                                                    class="btn btn-sm btn-outline-danger rounded border-0">
+                                                <button type="button"
+                                                    class="btn btn-sm btn-outline-danger rounded border-0 btn-delete"
+                                                    data-name="{{ $item->name }}">
                                                     <i class="fas fa-trash"></i>
                                                 </button>
                                             </form>
@@ -105,4 +122,30 @@
             </div>
         </div>
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        document.querySelectorAll('.btn-delete').forEach(button => {
+            button.addEventListener('click', function() {
+                const form = this.closest('.delete-form');
+                const recipeName = this.getAttribute('data-name');
+
+                Swal.fire({
+                    title: 'Apakah Anda yakin?',
+                    text: `Resep "${recipeName}" akan dihapus permanen!`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Ya, Hapus!',
+                    cancelButtonText: 'Batal',
+                    reverseButtons: true
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            });
+        });
+    </script>
 @endsection

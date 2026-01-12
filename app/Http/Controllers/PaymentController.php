@@ -54,14 +54,14 @@ class PaymentController extends Controller
         try {
             $order = Order::findOrFail($request->order_id);
 
-            DB::statement("CALL create_payment_procedure(?, ?, ?, ?, ?, ?, ?)", [
-                (float) $request->coupon_amount,
-                (float) $request->shipping_cost,
-                (float) $request->total_amount,
+            $result = DB::select("CALL create_payment_procedure(?, ?, ?, ?, ?, ?, ?)", [
+                $request->coupon_amount,
+                $request->shipping_cost,
+                $request->total_amount,
                 $request->method,
                 now(),
-                (int) $request->order_id,
-                $request->coupon_user_id ? (int) $request->coupon_user_id : null
+                $request->order_id,
+                $request->coupon_user_id ? $request->coupon_user_id : null
             ]);
 
             if (!empty($result) && isset($result[0]->ErrorDetail)) {
@@ -82,7 +82,6 @@ class PaymentController extends Controller
         }
     }
 
-    // bisa diganti jadi trigger
     public function afterPayment(Order $order): void
     {
         if (empty($order->order_details)) {
@@ -90,7 +89,7 @@ class PaymentController extends Controller
         }
 
         foreach ($order->order_details as $detail) {
-            $ingredient = Ingredient::with('ingredients')->where('id', $detail->ingredient_id)->first();
+            $ingredient = Ingredient::where('id', $detail->ingredient_id)->first();
 
             if (!$ingredient) {
                 throw new Exception("Bahan tidak ditemukan.");
@@ -99,24 +98,23 @@ class PaymentController extends Controller
             $newTotalStock = $ingredient->stock_quantity - $detail->quantity;
 
             DB::beginTransaction();
-            try{
+            try {
                 $result = DB::select("CALL edit_ingredient_procedure(?, ?, ?, ?, ?, ?, ?, ?, ?)", [
-                $detail->ingredient_id,
-                null,
-                null,
-                null,
-                null,
-                $newTotalStock,
-                null,
-                null,
-                null
-            ]);
-            if (!empty($result) && isset($result[0]->ErrorDetail)) {
-                throw new \Exception($result[0]->ErrorDetail);
-            }
-            DB::commit();
-
-            }catch (\Exception $e) {
+                    $detail->ingredient_id,
+                    null,
+                    null,
+                    null,
+                    null,
+                    $newTotalStock,
+                    null,
+                    null,
+                    null
+                ]);
+                if (!empty($result) && isset($result[0]->ErrorDetail)) {
+                    throw new \Exception($result[0]->ErrorDetail);
+                }
+                DB::commit();
+            } catch (\Exception $e) {
                 DB::rollBack();
                 report($e);
                 back()->withErrors('Gagal memperbarui stok');

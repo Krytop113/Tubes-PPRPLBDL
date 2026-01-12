@@ -5,11 +5,26 @@
 
 @section('content')
     <div class="container-fluid">
+        @if (session('success'))
+            <div class="alert alert-success border-0 shadow-sm mb-4">
+                <i class="fas fa-check-circle me-2"></i> {{ session('success') }}
+            </div>
+        @endif
+
+        @if ($errors->any())
+            <div class="alert alert-danger border-0 shadow-sm mb-4">
+                <ul class="mb-0">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
 
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h3 class="fw-bold text-dark mb-0">List Coupon</h3>
             <div class="d-flex gap-2">
-                <a href="{{ route('control.ingredients.create') }}" class="btn btn-primary shadow-sm">
+                <a href="{{ route('control.coupons.create') }}" class="btn btn-primary shadow-sm">
                     <i class="fas fa-plus me-2"></i> Tambah Coupon
                 </a>
             </div>
@@ -42,27 +57,29 @@
                                         </span>
                                     </td>
                                     <td>
-                                        <span class="fw-bold 'text-dark'">
-                                            {{ $item->start_date }}
+                                        <span class="fw-bold text-dark">
+                                            {{ \Carbon\Carbon::parse($item->start_date)->format('d/m/Y H:i') }}
                                         </span>
                                     </td>
                                     <td>
-                                        <span class="fw-bold 'text-dark'">
-                                            {{ $item->end_date }}
+                                        <span class="fw-bold text-dark">
+                                            {{ \Carbon\Carbon::parse($item->end_date)->format('d/m/Y H:i') }}
                                         </span>
                                     </td>
                                     <td class="text-end pe-4">
                                         <div class="btn-group gap-2">
-                                            <a href="" class="btn btn-sm btn-outline-warning rounded border-0">
+                                            <a href="{{ route('control.coupons.edit', $item->id) }}"
+                                                class="btn btn-sm btn-outline-warning rounded border-0">
                                                 <i class="fas fa-edit"></i>
                                             </a>
 
-                                            <form action="" method="POST" class="d-inline"
-                                                onsubmit="return confirm('Yakin ingin menghapus bahan ini?')">
+                                            <form action="{{ route('control.coupons.destroy', $item->id) }}" method="POST"
+                                                class="d-inline delete-form">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit"
-                                                    class="btn btn-sm btn-outline-danger rounded border-0">
+                                                <button type="button"
+                                                    class="btn btn-sm btn-outline-danger rounded border-0 btn-delete"
+                                                    data-name="{{ $item->title }}">
                                                     <i class="fas fa-trash"></i>
                                                 </button>
                                             </form>
@@ -84,4 +101,30 @@
             </div>
         </div>
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        document.querySelectorAll('.btn-delete').forEach(button => {
+            button.addEventListener('click', function() {
+                const form = this.closest('.delete-form');
+                const couponName = this.getAttribute('data-name');
+
+                Swal.fire({
+                    title: 'Apakah Anda yakin?',
+                    text: `Kupon "${couponName}" akan dihapus permanen!`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Ya, Hapus!',
+                    cancelButtonText: 'Batal',
+                    reverseButtons: true
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            });
+        });
+    </script>
 @endsection

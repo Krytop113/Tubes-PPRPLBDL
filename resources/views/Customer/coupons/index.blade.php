@@ -45,7 +45,8 @@
                                 <div class="row g-0 h-100">
                                     <div
                                         class="col-4 bg-primary bg-gradient d-flex align-items-center justify-content-center text-white">
-                                        <h2 class="fw-bold mb-0">{{ number_format($coupon->discount_percentage, 0) }}%</h2>
+                                        <h2 class="fw-bold mb-0">{{ number_format($coupon->discount_percentage, 0) }}%
+                                        </h2>
                                     </div>
 
                                     <div class="col-8 bg-white ticket-dashed">

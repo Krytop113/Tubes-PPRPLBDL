@@ -48,7 +48,7 @@ return new class extends Migration
                     SIGNAL SQLSTATE '45000'
                     SET MESSAGE_TEXT = 'Gagal: ID kategori harus diisi.';
                 ELSEIF NOT EXISTS (
-                    SELECT 1 FROM recipe_category WHERE id = p_category_recipe_id
+                    SELECT 1 FROM recipe_categories WHERE id = p_category_recipe_id
                 ) THEN
                     SIGNAL SQLSTATE '45000'
                     SET MESSAGE_TEXT = 'Gagal: ID kategori tidak ditemukan.';
@@ -58,7 +58,7 @@ return new class extends Migration
                     name, description, steps,
                     cook_time, serving, recipe_category_id, image_url, created_at, updated_at
                 ) VALUES (
-                    p_name, p_description, p_steps,
+                    p_title, p_description, p_steps,
                     p_cook_time, p_serving, p_category_recipe_id, p_image_url, NOW(), NOW()
                 );
 

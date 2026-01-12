@@ -42,8 +42,7 @@ class OrderController extends Controller
         }
 
         try {
-            $payment = Payment::with('payments')
-                ->where('order_id', $order->id)
+            $payment = Payment::where('order_id', $order->id)
                 ->first();
 
             $orderDetails = DB::table('vw_order_details_with_ingredients')
@@ -60,6 +59,7 @@ class OrderController extends Controller
             return view('customer.order.show', compact('order', 'orderDetails', 'couponUsers', 'payment'));
         } catch (\Exception $e) {
             report($e);
+            dd($e);
             return back()->withErrors('Terjadi kesalahan saat memuat data.');
         }
     }
@@ -115,7 +115,7 @@ class OrderController extends Controller
 
     // Control Panel View
     public function indexcontrol(Request $request)
-    {   
+    {
         $query = DB::table('orders')
             ->join('users', 'orders.user_id', '=', 'users.id')
             ->select('orders.*', 'users.name as customer_name')

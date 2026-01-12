@@ -42,7 +42,8 @@
                 </div>
 
                 <h5 class="fw-bold">Deskripsi</h5>
-                <p class="text-secondary mb-5" style="white-space: pre-line; line-height: 1.8">{{ $recipe->description }}</p>
+                <p class="text-secondary mb-5" style="white-space: pre-line; line-height: 1.8">{{ $recipe->description }}
+                </p>
 
                 <h5 class="fw-bold">Cara Memasak</h5>
                 <p class="text-secondary mb-5" style="white-space: pre-line; line-height: 1.8;">{{ $recipe->steps }}</p>
@@ -57,9 +58,9 @@
                             <div class="d-flex align-items-center justify-content-center mb-4 gap-3">
                                 <button type="button" class="btn btn-outline-secondary rounded-circle"
                                     onclick="changeServing(-1)" style="width: 45px; height: 45px;">-</button>
-                                <input type="number" id="serving_display" name="serving_order"
-                                    value="{{ $recipe->serving }}" class="form-control text-center fw-bold border-0 fs-4"
-                                    style="width: 80px;" readonly>
+                                <input type="number" id="serving_display" name="serving_order" value="1"
+                                    min="1" class="form-control text-center fw-bold border-0 fs-4"
+                                    style="width: 80px; cursor: default;" readonly>
                                 <button type="button" class="btn btn-primary rounded-circle" onclick="changeServing(1)"
                                     style="width: 45px; height: 45px;">+</button>
                             </div>
@@ -74,12 +75,11 @@
     </div>
 
     <script>
-        const baseServing = {{ $recipe->serving }};
-        let currentServing = baseServing;
+        let currentServing = 1;
 
         function changeServing(dir) {
-            if (dir === 1) currentServing += baseServing;
-            else if (currentServing > baseServing) currentServing -= baseServing;
+            if (dir === 1) currentServing += 1;
+            else if (currentServing > 1) currentServing -= 1;
             document.getElementById('serving_display').value = currentServing;
         }
     </script>

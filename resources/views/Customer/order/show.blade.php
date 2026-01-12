@@ -53,7 +53,7 @@
                                         <td class="ps-3">
                                             <div class="d-flex align-items-center">
                                                 @if (isset($item->ingredient_image) && $item->ingredient_image)
-                                                    <img src="{{ asset('storage/' . $item->ingredient_image) }}"
+                                                    <img src="{{ asset('ingredients/' . $item->ingredient_image) }}"
                                                         class="rounded me-2" width="40">
                                                 @endif
                                                 <div>

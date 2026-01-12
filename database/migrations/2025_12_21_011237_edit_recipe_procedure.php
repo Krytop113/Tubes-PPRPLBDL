@@ -38,7 +38,7 @@ return new class extends Migration
                     SET MESSAGE_TEXT = 'Gagal Update: Resep dengan ID tersebut tidak ditemukan.';
                 ELSEIF p_category_recipe_id IS NOT NULL
                     AND NOT EXISTS (
-                        SELECT 1 FROM recipe_category WHERE id = p_category_recipe_id
+                        SELECT 1 FROM recipe_categories WHERE id = p_category_recipe_id
                     ) THEN
                     SIGNAL SQLSTATE '45000'
                     SET MESSAGE_TEXT = 'Gagal Update: ID kategori resep tidak valid.';
@@ -46,7 +46,7 @@ return new class extends Migration
 
                 UPDATE recipes
                 SET
-                    title = IFNULL(p_title, title),
+                    name = IFNULL(p_title, name),
                     description = IFNULL(p_description, description),
                     steps = IFNULL(p_steps, steps),
                     cook_time = IFNULL(p_cook_time, cook_time),

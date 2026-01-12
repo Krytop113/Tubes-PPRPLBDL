@@ -8,9 +8,6 @@
                 <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
                     <div class="card-header bg-gradient-primary text-white text-center py-4 border-0"
                         style="background: linear-gradient(45deg, #0d6efd, #004fb1);">
-                        <div class="payment-icon-wrapper mb-3">
-                            <i class="fas fa-shield-check fa-3x"></i>
-                        </div>
                         <h5 class="mb-1 fw-bold">Konfirmasi Pembayaran</h5>
                         <p class="small mb-0 opacity-75">ID Pesanan: #{{ $order->id }}</p>
                     </div>

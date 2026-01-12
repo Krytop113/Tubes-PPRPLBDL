@@ -62,11 +62,6 @@ Route::post('/register', function (Request $request) {
     return redirect()->route('login');
 });
 
-// Route::post('/email/verification-notification', function (Request $request) {
-//     $request->user()->sendEmailVerificationNotification();
-//     return back()->with('success', 'Email verifikasi telah dikirim.');
-// })->middleware(['auth', 'throttle:6,1'])->name('verification.send');
-
 // Home Divider
 Route::get('/', [HomeController::class, 'index'])
     ->name('home');
@@ -102,10 +97,19 @@ Route::middleware(['auth', 'role:admin,employee'])
         // control Recipes
         Route::get('/control/recipes', [RecipeController::class, 'indexcontrol'])
             ->name('control.recipes.index');
+        
         Route::get('/control/recipes/create', [RecipeController::class, 'create'])
             ->name('control.recipes.create');
-        Route::get('/control/recipes/{recipe}', [RecipeController::class, 'edit'])
+        Route::post('/control/recipes', [RecipeController::class, 'store'])
+            ->name('control.recipes.store');
+        
+            Route::get('/control/recipes/{recipe}', [RecipeController::class, 'edit'])
             ->name('control.recipes.edit');
+        Route::put('/control/recipes/{recipe}', [RecipeController::class, 'update'])
+            ->name('control.recipes.update');
+
+        Route::delete('/control/recipes/{recipe}', [RecipeController::class, 'destroy'])
+            ->name('control.recipes.destroy');
 
         // control Order
         Route::get('/control/orders', [OrderController::class, 'indexcontrol'])
@@ -116,10 +120,19 @@ Route::middleware(['auth', 'role:admin,employee'])
         // control Coupons
         Route::get('/control/coupons', [CouponController::class, 'indexcontrol'])
             ->name('control.coupons.index');
+        
         Route::get('/control/coupons/create', [CouponController::class, 'create'])
             ->name('control.coupons.create');
+        Route::post('/control/coupons', [CouponController::class, 'store'])
+            ->name('control.coupons.store');
+        
         Route::get('/control/coupons/{coupon}', [CouponController::class, 'edit'])
             ->name('control.coupons.edit');
+        Route::put('/control/coupons/{coupon}', [CouponController::class, 'update'])
+            ->name('control.coupons.update');
+        
+        Route::delete('/control/coupons/{coupon}', [CouponController::class, 'destroy'])
+            ->name('control.coupons.destroy');
 
         // control user
         /// Customer

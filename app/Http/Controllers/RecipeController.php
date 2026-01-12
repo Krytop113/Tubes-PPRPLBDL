@@ -8,6 +8,8 @@ use App\Models\RecipeCategory;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Exception;
+use Illuminate\Support\Str;
 
 class RecipeController extends Controller
 {
@@ -54,7 +56,7 @@ class RecipeController extends Controller
             ->when($search, function ($query) use ($search) {
                 $query->where('name', 'like', '%' . $search . '%');
             })
-            ->orderBy('name','asc')
+            ->orderBy('name', 'asc')
             ->get();
 
         return view('control.recipe.index', compact('recipes', 'categories', 'selectedCategory', 'search'));
@@ -66,9 +68,59 @@ class RecipeController extends Controller
         return view('control.recipe.create', compact('categories'));
     }
 
-    public function store(Request $request, Recipe $recipe)
+    public function store(Request $request)
     {
-        //
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'required|string',
+            'steps' => 'required|string',
+            'cook_time' => 'required|integer|min:1',
+            'serving' => 'required|integer|min:1',
+            'recipe_category_id' => 'required|exists:recipe_categories,id',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048'
+        ]);
+
+        DB::beginTransaction();
+
+        try {
+            $fileName = null;
+            if ($request->hasFile('image')) {
+                $file = $request->file('image');
+
+                $words = explode(' ', $request->name);
+                $twoWords = array_slice($words, 0, 2);
+                $baseName = Str::slug(implode('_', $twoWords), '_');
+                $fileName = $baseName . '_' . time() . '.jpg';
+            }
+
+            $result = DB::select("CALL create_recipe_procedure(?, ?, ?, ?, ?, ?, ?)", [
+                $request->name,
+                $request->description,
+                $request->steps,
+                $request->cook_time,
+                $request->serving,
+                $request->recipe_category_id,
+                $fileName
+            ]);
+
+            if (!empty($result) && isset($result[0]->ErrorDetail)) {
+                throw new \Exception($result[0]->ErrorDetail);
+            }
+
+            DB::commit();
+
+            $file->move(public_path('recipes'), $fileName);
+
+            return redirect()->route('control.recipes.index')
+                ->with('success', 'Resep ' . $request->name . ' berhasil disimpan!');
+        } catch (\Exception $e) {
+            if ($fileName && file_exists(public_path('recipes/' . $fileName))) {
+                unlink(public_path('recipes/' . $fileName));
+            }
+            DB::rollBack();
+            report($e);
+            return back()->withErrors('Gagal menyimpan: ' . $e->getMessage())->withInput();
+        }
     }
 
     public function edit(Recipe $recipe)
@@ -83,18 +135,78 @@ class RecipeController extends Controller
 
     public function update(Request $request, Recipe $recipe)
     {
-        //
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'required|string',
+            'steps' => 'required|string',
+            'cook_time' => 'required|integer|min:1',
+            'serving' => 'required|integer|min:1',
+            'recipe_category_id' => 'required|exists:recipe_categories,id',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048'
+        ]);
+
+        $oldImageUrl = $recipe->image_url;
+        $newImageUrl = $oldImageUrl;
+
+        DB::beginTransaction();
+
+        try {
+            $words = explode(' ', $request->name);
+            $twoWords = array_slice($words, 0, 2);
+            $baseName = Str::slug(implode('_', $twoWords), '_');
+
+            if ($request->hasFile('image')) {
+                $file = $request->file('image');
+                $newImageUrl = $baseName . '_' . time() . '.jpg';
+
+                if ($oldImageUrl && file_exists(public_path('recipes/' . $oldImageUrl))) {
+                    unlink(public_path('recipes/' . $oldImageUrl));
+                }
+
+                $file->move(public_path('recipes'), $newImageUrl);
+            } else if ($oldImageUrl && $recipe->name !== $request->name) {
+                $newImageUrl = $baseName . '_' . time() . '.jpg';
+            }
+
+            $result = DB::select('CALL edit_recipe_procedure(?, ?, ?, ?, ?, ?, ?, ?)', [
+                $recipe->id,
+                $request->name,
+                $request->description,
+                $request->steps,
+                $request->cook_time,
+                $request->serving,
+                $request->recipe_category_id,
+                $newImageUrl
+            ]);
+
+            if (!empty($result) && isset($result[0]->ErrorDetail)) {
+                throw new \Exception($result[0]->ErrorDetail);
+            }
+
+            DB::commit();
+
+            rename(public_path('recipes/' . $oldImageUrl), public_path('recipes/' . $newImageUrl));
+
+            return redirect()->route('control.recipes.index')
+                ->with('success', 'Resep ' . $recipe->name . ' berhasil diperbarui!');
+        } catch (\Exception $e) {
+            if ($newImageUrl !== $oldImageUrl && file_exists(public_path('recipes/' . $newImageUrl))) {
+                unlink(public_path('recipes/' . $newImageUrl));
+            }
+            DB::rollBack();
+            
+            dd($e);
+            report($e);
+            return back()->withErrors('Gagal memperbarui: ' . $e->getMessage())->withInput();
+        }
     }
 
     public function destroy(Recipe $recipe)
     {
-        if (empty($recipe)) {
-            return back()->withErrors('Data tidak ditemukan');
-        }
-
         DB::beginTransaction();
+
         try {
-            $result = DB::select('CALL delete_ingredient_procedure(?)', [$recipe->id]);
+            $result = DB::select('CALL delete_recipe_procedure(?)', [$recipe->id]);
 
             if (!empty($result) && isset($result[0]->ErrorDetail)) {
                 throw new \Exception($result[0]->ErrorDetail);
@@ -106,11 +218,11 @@ class RecipeController extends Controller
                 unlink(public_path('recipes/' . $recipe->image_url));
             }
 
-            return redirect()->route('control.recipe.index')->with('success', $$recipe->name . ' Berhasil dihapus!');
-            
+            return redirect()->route('control.recipes.index')->with('success', $recipe->name . ' Berhasil dihapus!');
         } catch (\Exception $e) {
+            DB::rollBack();
             report($e);
-            return back()->withErrors('Gagal menghapus Resep');
+            return back()->withErrors($e->getMessage());
         }
     }
 }

@@ -72,7 +72,8 @@
 
                                 <input type="number" id="qty_display" name="quantity" value="1" min="1"
                                     max="{{ $ingredient->stock_quantity }}"
-                                    class="form-control text-center fw-bold border-0 fs-4" style="width: 80px;" readonly>
+                                    class="form-control text-center fw-bold border-0 fs-4"
+                                    style="width: 80px; cursor: default" readonly>
 
                                 <button type="button" class="btn btn-primary rounded-circle" onclick="changeQty(1)"
                                     style="width: 45px; height: 45px;">+</button>

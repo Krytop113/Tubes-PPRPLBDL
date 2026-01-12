@@ -44,7 +44,7 @@ class CartController extends Controller
             return back()->withErrors('Resep atau daftar bahan tidak ditemukan.');
         }
 
-        $multiplier = $request->serving_order / $recipe->serving;
+        $multiplier = $request->serving_order;
         $cart = session()->get('cart', []);
         $errors = [];
 
@@ -224,7 +224,7 @@ class CartController extends Controller
             
             NotificationController::orderCheckout(Auth::id(), $order->id);
 
-            return redirect()->route('orders.index')->with('success', 'Checkout berhasil!');
+            return redirect()->route('orders.show', $order->id)->with('success', 'Checkout berhasil!');
         } catch (\Exception $e) {
             DB::rollBack();
             report($e);
