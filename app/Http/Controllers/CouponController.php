@@ -26,6 +26,9 @@ class CouponController extends Controller
         $usercoupons = CouponUser::with('coupon')
             ->where('user_id', $userId)
             ->where('status', 'unused')
+            ->whereHas('coupon', function ($query) {
+                $query->where('end_date', '>=', now());
+            })
             ->get();
 
         return view('customer.coupons.index', compact('coupons', 'usercoupons'));

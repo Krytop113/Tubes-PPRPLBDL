@@ -48,13 +48,13 @@
                             <img src="{{ asset('recipes/' . $recipe->image_url) }}" class="card-img-top"
                                 style="height:200px; object-fit:cover;" alt="{{ $recipe->name }}">
 
-                            <span class="position-absolute top-0 start-0 m-3 badge bg-white text-dark shadow-sm fw-medium">
+                            <span class="position-absolute top-0 start-0 m-3 badge bg-white text-dark shadow-sm">
                                 {{ $recipe->recipe_category->name }}
                             </span>
                         </div>
 
                         <div class="card-body p-4">
-                            <h5 class="card-title fw-bold mb-2 text-truncate-2" style="height: 3rem;">
+                            <h5 class="card-title fw-bold mb-2 text-truncate-2">
                                 {{ $recipe->name }}
                             </h5>
 

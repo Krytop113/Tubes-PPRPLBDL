@@ -55,7 +55,7 @@
 
             <a href="{{ route('control.log') }}" 
                 class="nav-link {{ request()->is('control/log*') ? 'active' : '' }}">
-                <i class="fas fa-chart-bar"></i> Reports
+                <i class="fas fa-chart-bar"></i> Log Activity
             </a>
 
             <a href="#" class="nav-link {{ request()->is('control/settings*') ? 'active' : '' }}">

@@ -46,8 +46,7 @@
                     <div class="card h-100 border-0 shadow-sm hover-top" style="transition: all 0.3s; border-radius: 15px;">
                         <div class="position-relative">
                             <img src="{{ asset('ingredients/' . $ingredient->image_url) }}" class="card-img-top"
-                                style="height:200px; object-fit:cover; border-radius: 15px 15px 0 0;"
-                                alt="{{ $ingredient->name }}">
+                                style="height:200px; object-fit:cover;" alt="{{ $ingredient->name }}">
 
                             <span class="position-absolute top-0 start-0 m-3 badge bg-white text-dark shadow-sm">
                                 {{ $ingredient->ingredient_category->name }}
@@ -70,7 +69,6 @@
                     <h5 class="text-muted">Bahan tidak ditemukan.</h5>
                     <p class="small text-muted">Coba gunakan kata kunci lain atau pilih kategori berbeda.</p>
                 </div>
-
             @endforelse
 
             <div class="d-flex justify-content-center mt-5">

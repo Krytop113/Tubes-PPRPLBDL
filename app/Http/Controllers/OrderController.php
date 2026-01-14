@@ -116,20 +116,22 @@ class OrderController extends Controller
     // Control Panel View
     public function indexcontrol(Request $request)
     {
-        $query = DB::table('orders')
-            ->join('users', 'orders.user_id', '=', 'users.id')
-            ->select('orders.*', 'users.name as customer_name')
-            ->whereIn('orders.status', ['done', 'paid']);
+        $query = DB::table('vw_order_report1');
 
         if ($request->filled('start_date') && $request->filled('end_date')) {
-            $start = $request->query('start_date');
-            $end = $request->query('end_date');
-            $query->whereBetween('orders.created_at', [$start . ' 00:00:00', $end . ' 23:59:59']);
+            $query->whereBetween('tanggal_order', [
+                $request->start_date . ' 00:00:00',
+                $request->end_date . ' 23:59:59'
+            ]);
         }
 
-        $orders = $query->orderByDesc('orders.created_at')->get();
+        if ($request->filled('filter')) {
+            $status = ($request->filter == '1') ? 'paid' : 'done';
+            $query->where('order_status', $status);
+        }
 
-        $totalRevenue = $orders->sum('total_raw');
+        $orders = $query->orderByDesc('tanggal_order')->get();
+        $totalRevenue = $orders->sum('total_bayar');
 
         return view('control.order.index', compact('orders', 'totalRevenue'));
     }

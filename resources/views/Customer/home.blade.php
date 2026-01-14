@@ -3,16 +3,83 @@
 @section('title', 'Beranda')
 
 @section('content')
-    <section class="py-5 mb-5 bg-light" style="border-radius: 0 0 50px 50px;">
-        <div class="container text-center py-5">
-            <h1 class="display-4 fw-bold mb-3">Kualitas Bumbu Terbaik</h1>
-            <p class="lead text-muted mb-4">Rasa otentik untuk masakan Anda, langsung dari bahan pilihan berkualitas tinggi.
-            </p>
-            <div class="d-flex justify-content-center gap-3">
-                <a href="{{ route('recipes.index') }}" class="btn btn-primary btn-lg rounded-pill px-4">Lihat Resep</a>
-                <a href="{{ route('ingredients.index') }}" class="btn btn-outline-primary btn-lg rounded-pill px-4">Cari
-                    Bahan</a>
+    <section class="mb-5">
+        <div id="heroCarousel" class="carousel slide carousel-fade shadow" data-bs-ride="carousel"
+            style="border-radius: 0 0 50px 50px; overflow: hidden;">
+            <div class="carousel-indicators">
+                <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="0" class="active rounded-circle"
+                    style="width: 12px; height: 12px;"></button>
+                <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="1" class="rounded-circle"
+                    style="width: 12px; height: 12px;"></button>
+                <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="2" class="rounded-circle"
+                    style="width: 12px; height: 12px;"></button>
             </div>
+
+            <div class="carousel-inner">
+                <div class="carousel-item active" style="height: 550px;">
+                    <img src="https://images.unsplash.com/photo-1532336414038-cf19250c5757?q=80&w=1200"
+                        class="d-block w-100 h-100" style="object-fit: cover;">
+                    <div class="carousel-caption d-flex h-100 align-items-center justify-content-center"
+                        style="top: 0; left: 0; right: 0;">
+                        <div class="bg-dark bg-opacity-50 p-5 rounded-4 w-75">
+                            <h1 class="display-3 fw-bold">Kualitas Bumbu Terbaik</h1>
+                            <p class="lead mb-4">Rasa otentik untuk masakan Anda, langsung dari bahan pilihan berkualitas
+                                tinggi.</p>
+                            <div class="d-flex justify-content-center gap-3">
+                                <a href="{{ route('recipes.index') }}"
+                                    class="btn btn-primary btn-lg rounded-pill px-4 shadow">Lihat Resep</a>
+                                <a href="{{ route('ingredients.index') }}"
+                                    class="btn btn-outline-light btn-lg rounded-pill px-4">Cari Bahan</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="carousel-item" style="height: 550px;">
+                    <img src="https://images.unsplash.com/photo-1518843875459-f738682238a6?q=80&w=1200"
+                        class="d-block w-100 h-100" style="object-fit: cover;">
+                    <div class="carousel-caption d-flex h-100 align-items-center justify-content-center"
+                        style="top: 0; left: 0; right: 0;">
+                        <div class="bg-dark bg-opacity-50 p-5 rounded-4 w-75">
+                            <h1 class="display-3 fw-bold">Bahan Baku Segar</h1>
+                            <p class="lead mb-4">Dipetik langsung dari petani lokal untuk menjaga kualitas gizi keluarga
+                                Anda.</p>
+                            <div class="d-flex justify-content-center gap-3">
+                                <a href="{{ route('recipes.index') }}"
+                                    class="btn btn-primary btn-lg rounded-pill px-4 shadow">Lihat Resep</a>
+                                <a href="{{ route('ingredients.index') }}"
+                                    class="btn btn-outline-light btn-lg rounded-pill px-4">Cari Bahan</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="carousel-item" style="height: 550px;">
+                    <img src="https://images.unsplash.com/photo-1547592166-23ac45744acd?q=80&w=1200"
+                        class="d-block w-100 h-100" style="object-fit: cover;">
+                    <div class="carousel-caption d-flex h-100 align-items-center justify-content-center"
+                        style="top: 0; left: 0; right: 0;">
+                        <div class="bg-dark bg-opacity-50 p-5 rounded-4 w-75">
+                            <h1 class="display-3 fw-bold">Masak Jadi Mudah</h1>
+                            <p class="lead mb-4">Ikuti panduan langkah demi langkah untuk menyajikan hidangan restoran di
+                                rumah.</p>
+                            <div class="d-flex justify-content-center gap-3">
+                                <a href="{{ route('recipes.index') }}"
+                                    class="btn btn-primary btn-lg rounded-pill px-4 shadow">Lihat Resep</a>
+                                <a href="{{ route('ingredients.index') }}"
+                                    class="btn btn-outline-light btn-lg rounded-pill px-4">Cari Bahan</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            </button>
         </div>
     </section>
 
