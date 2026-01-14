@@ -76,7 +76,6 @@ return new class extends Migration
                         ) AS ResultMessage;
                     END IF;
                 END IF;
-
             END;
         ");
     }

@@ -116,22 +116,48 @@ class OrderController extends Controller
     // Control Panel View
     public function indexcontrol(Request $request)
     {
-        $query = DB::table('vw_order_report1');
+        $reportType = $request->query('report_type', 'order_only');
 
-        if ($request->filled('start_date') && $request->filled('end_date')) {
-            $query->whereBetween('tanggal_order', [
-                $request->start_date . ' 00:00:00',
-                $request->end_date . ' 23:59:59'
-            ]);
+        if ($reportType === 'top_items') {
+            $query = DB::table('vw_order_item');
+
+            if ($request->filled('start_date') && $request->filled('end_date')) {
+            }
+
+            $orders = $query->get();
+            $totalRevenue = $orders->sum('total_omzet_bahan');
+        } else {
+            $query = DB::table('vw_order_report1');
+
+            if ($request->filled('start_date') && $request->filled('end_date')) {
+                $query->whereBetween('tanggal_order', [
+                    $request->start_date . ' 00:00:00',
+                    $request->end_date . ' 23:59:59'
+                ]);
+            }
+
+            if ($request->filled('user_search')) {
+                $query->where(function ($q) use ($request) {
+                    $q->where('nama_pelanggan', 'like', '%' . $request->user_search . '%')
+                        ->orWhere('order_id', 'like', '%' . $request->user_search . '%');
+                });
+            }
+
+            $orders = $query->orderByDesc('tanggal_order')->get();
+
+            if ($orders->isNotEmpty()) {
+                $details = \App\Models\OrderDetail::with('ingredient')
+                    ->whereIn('order_id', $orders->pluck('order_id'))
+                    ->get()
+                    ->groupBy('order_id');
+
+                foreach ($orders as $order) {
+                    $order->items = $details->get($order->order_id) ?? collect();
+                }
+            }
+
+            $totalRevenue = $orders->sum('total_bayar');
         }
-
-        if ($request->filled('filter')) {
-            $status = ($request->filter == '1') ? 'paid' : 'done';
-            $query->where('order_status', $status);
-        }
-
-        $orders = $query->orderByDesc('tanggal_order')->get();
-        $totalRevenue = $orders->sum('total_bayar');
 
         return view('control.order.index', compact('orders', 'totalRevenue'));
     }

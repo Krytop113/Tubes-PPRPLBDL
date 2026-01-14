@@ -153,7 +153,7 @@ class IngredientController extends Controller
         $oldImageUrl = $ingredient->image_url;
         $newImageUrl = $oldImageUrl;
         
-        DB::beginTranscation();
+        DB::beginTransaction();
 
         try {
             $words = explode(' ', $request->name);
@@ -199,6 +199,7 @@ class IngredientController extends Controller
             if ($newImageUrl !== $oldImageUrl) {
                 Storage::disk('public')->delete($newImageUrl);
             }
+            DB::rollBack();
             report($e);
             return back()->withErrors('Gagal memperbarui data');
         }

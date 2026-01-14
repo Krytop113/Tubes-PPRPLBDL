@@ -70,6 +70,6 @@ class Ingredient extends Model
 	{
 		return $this->belongsToMany(Recipe::class, 'recipe_ingredients')
 					->withPivot('id', 'quantity_required', 'unit')
-					->withTimestamps();
+					->withTiAmestamps();
 	}
 }

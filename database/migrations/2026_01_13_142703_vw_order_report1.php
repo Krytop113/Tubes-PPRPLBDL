@@ -38,6 +38,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        DB::statement("DROP VIEW IF EXISTS vw_order_report1");
+        DB::unprepared("DROP VIEW IF EXISTS vw_order_report1");
     }
 };

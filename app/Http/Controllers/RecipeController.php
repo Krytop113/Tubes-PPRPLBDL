@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\RecipeCategory;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Ingredient;
 use Illuminate\Support\Facades\DB;
 use Exception;
 use Illuminate\Support\Str;
@@ -65,7 +66,8 @@ class RecipeController extends Controller
     public function create()
     {
         $categories = RecipeCategory::all();
-        return view('control.recipe.create', compact('categories'));
+        $allIngredients = Ingredient::orderBy('name', 'asc')->get();
+        return view('control.recipe.create', compact('categories','allIngredients'));
     }
 
     public function store(Request $request)
@@ -77,7 +79,10 @@ class RecipeController extends Controller
             'cook_time' => 'required|integer|min:1',
             'serving' => 'required|integer|min:1',
             'recipe_category_id' => 'required|exists:recipe_categories,id',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048'
+            'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'ingredients' => 'required|array|min:1',
+            'ingredients.*.id' => 'required|exists:ingredients,id',
+            'ingredients.*.quantity' => 'required|integer|min:1'
         ]);
 
         DB::beginTransaction();
@@ -107,12 +112,27 @@ class RecipeController extends Controller
                 throw new \Exception($result[0]->ErrorDetail);
             }
 
+            $newRecipe = Recipe::where('name', $request->name)->orderBy('created_at', 'desc')->first();
+
+            foreach ($request->ingredients as $item) {
+                $ingResult = DB::select("CALL create_recipe_ingredient_procedure(?, ?, ?, ?)", [
+                    $item['quantity'],
+                    $item['unit'] ?? 'pcs',
+                    $newRecipe->id,
+                    $item['id']
+                ]);
+
+                if (!empty($ingResult) && isset($ingResult[0]->ErrorDetail)) {
+                    throw new \Exception($ingResult[0]->ErrorDetail);
+                }
+            }
             DB::commit();
 
             $file->move(public_path('recipes'), $fileName);
 
             return redirect()->route('control.recipes.index')
                 ->with('success', 'Resep ' . $request->name . ' berhasil disimpan!');
+
         } catch (\Exception $e) {
             if ($fileName && file_exists(public_path('recipes/' . $fileName))) {
                 unlink(public_path('recipes/' . $fileName));
@@ -194,7 +214,7 @@ class RecipeController extends Controller
                 unlink(public_path('recipes/' . $newImageUrl));
             }
             DB::rollBack();
-            
+
             dd($e);
             report($e);
             return back()->withErrors('Gagal memperbarui: ' . $e->getMessage())->withInput();

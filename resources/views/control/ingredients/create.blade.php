@@ -78,7 +78,7 @@
                             <div class="mb-4">
                                 <label class="fw-bold">Gambar Bahan</label>
                                 <input type="file" name="image" class="form-control" accept="image/*" required>
-                                <small class="text-muted">Format akan otomatis diubah menjadi .jpg</small>
+                                <small class="text-muted">Format yang di dukung JPG</small>
                             </div>
 
                             <hr>
