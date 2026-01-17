@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\Order;
 use App\Http\Controllers\NotificationController;
 use App\Models\Payment;
+use App\Models\OrderDetail;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Exception;
 
@@ -133,7 +134,7 @@ class OrderController extends Controller
         try {
             $result = DB::select('CALL edit_orders_procedure(?, ?)', [
                 $order->id,
-                'Done'
+                'done'
             ]);
 
             if (!empty($result) && isset($result[0]->ErrorDetail)) {
@@ -218,7 +219,7 @@ class OrderController extends Controller
             $orders = $query->orderByDesc('tanggal_order')->get();
 
             if ($orders->isNotEmpty()) {
-                $details = \App\Models\OrderDetail::with('ingredient')
+                $details = OrderDetail::with('ingredient')
                     ->whereIn('order_id', $orders->pluck('order_id'))
                     ->get()
                     ->groupBy('order_id');
