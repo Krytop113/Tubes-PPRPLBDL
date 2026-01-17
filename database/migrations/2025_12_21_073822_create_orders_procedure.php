@@ -16,6 +16,9 @@ return new class extends Migration
                 IN p_user_id BIGINT
             )
             BEGIN
+                DECLARE v_new_id VARCHAR(20);
+                DECLARE v_today_prefix VARCHAR(8);
+                DECLARE v_last_increment INT;
                 DECLARE v_error_message VARCHAR(255);
                 DECLARE v_is_error BOOLEAN DEFAULT FALSE;
 
@@ -25,51 +28,29 @@ return new class extends Migration
                     SET v_is_error = TRUE;
                 END;
 
+                SET v_today_prefix = DATE_FORMAT(NOW(), '%Y%m%d');
+
+                SELECT IFNULL(MAX(CAST(SUBSTRING(id, 10) AS UNSIGNED)), 0) INTO v_last_increment
+                FROM orders
+                WHERE id LIKE CONCAT(v_today_prefix, '-%');
+
+                SET v_new_id = CONCAT(v_today_prefix, '-', LPAD(v_last_increment + 1, 4, '0'));
+
                 IF p_status IS NULL OR TRIM(p_status) = '' THEN
-                    SIGNAL SQLSTATE '45000'
-                    SET MESSAGE_TEXT = 'Gagal Insert: Status order tidak boleh kosong.';
-
+                    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Gagal Insert: Status order tidak boleh kosong.';
+                
                 ELSEIF p_user_id IS NULL OR p_user_id <= 0 THEN
-                    SIGNAL SQLSTATE '45000'
-                    SET MESSAGE_TEXT = 'Gagal Insert: ID user tidak valid.';
+                    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Gagal Insert: ID user tidak valid.';
 
-                ELSEIF NOT EXISTS (
-                    SELECT 1 FROM users WHERE id = p_user_id
-                ) THEN
-                    SIGNAL SQLSTATE '45000'
-                    SET MESSAGE_TEXT = 'Gagal Insert: User tidak ditemukan.';
+                ELSEIF NOT EXISTS (SELECT 1 FROM users WHERE id = p_user_id) THEN
+                    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Gagal Insert: User tidak ditemukan.';
 
-                ELSEIF p_status = 'cart' THEN
-                    IF NOT EXISTS (
-                        SELECT 1 FROM orders
-                        WHERE user_id = p_user_id
-                          AND status = 'cart'
-                    ) THEN
-                        INSERT INTO orders (
-                            status,
-                            total_raw,
-                            user_id,
-                            created_at,
-                            updated_at
-                        )
-                        VALUES (
-                            'cart',
-                            0,
-                            p_user_id,
-                            NOW(),
-                            NOW()
-                        );
-                    END IF;
+                ELSEIF p_total_raw IS NULL OR p_total_raw < 0 THEN
+                    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Gagal Insert: Total order tidak valid.';
 
-                    SELECT 'Cart siap digunakan' AS ResultMessage;
                 ELSE
-
-                    IF p_total_raw IS NULL OR p_total_raw <= 0 THEN
-                        SIGNAL SQLSTATE '45000'
-                        SET MESSAGE_TEXT = 'Gagal Insert: Total order harus lebih dari nol.';
-                    END IF;
-
                     INSERT INTO orders (
+                        id,
                         status,
                         total_raw,
                         user_id,
@@ -77,6 +58,7 @@ return new class extends Migration
                         updated_at
                     )
                     VALUES (
+                        v_new_id,
                         p_status,
                         p_total_raw,
                         p_user_id,
@@ -85,18 +67,12 @@ return new class extends Migration
                     );
 
                     IF v_is_error = FALSE THEN
-                        SELECT CONCAT(
-                            'Order berhasil dibuat dengan ID ',
-                            LAST_INSERT_ID()
-                        ) AS ResultMessage;
+                        SELECT v_new_id AS generated_id, 'Order berhasil dibuat' AS ResultMessage;
                     END IF;
                 END IF;
 
                 IF v_is_error = TRUE THEN
-                    SELECT CONCAT(
-                        'TRANSAKSI GAGAL KARENA ERROR SQL: ',
-                        v_error_message
-                    ) AS ErrorDetail;
+                    SELECT CONCAT('TRANSAKSI GAGAL KARENA ERROR SQL: ', v_error_message) AS ErrorDetail;
                 END IF;
             END;
         ");

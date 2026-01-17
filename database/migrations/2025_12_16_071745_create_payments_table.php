@@ -18,7 +18,10 @@ return new class extends Migration
             $table->decimal('total_amount', 10, 2);
             $table->string('method');
             $table->datetime('date');
-            $table->foreignId('order_id')->constrained('orders');
+            
+            $table->string('order_id',20);
+            $table->foreign('order_id')->references('id')->on('orders')->cascadeOnDelete();
+            
             $table->foreignId('coupon_id')->nullable()->constrained('coupon_users');
             $table->timestamps();
         });

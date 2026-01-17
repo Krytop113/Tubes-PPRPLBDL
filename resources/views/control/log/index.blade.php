@@ -4,22 +4,34 @@
 @section('page-title', 'Log Kegiatan')
 
 @section('content')
-    <div class="container-fluid">
-        @if (session('success'))
-            <div class="alert alert-success border-0 shadow-sm mb-4">
-                <i class="fas fa-check-circle me-2"></i> {{ session('success') }}
+        <div class="card mb-4 border-0 shadow-sm">
+            <div class="card-body">
+                <form action="" method="GET" class="row g-3 align-items-end">
+                    <div class="col-md-3">
+                        <label class="form-label small fw-bold text-uppercase text-muted">Dari Waktu</label>
+                        <input type="datetime-local" name="start_date" class="form-control"
+                            value="{{ request('start_date') }}">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small fw-bold text-uppercase text-muted">Sampai Waktu</label>
+                        <input type="datetime-local" name="end_date" class="form-control" value="{{ request('end_date') }}">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold text-uppercase text-muted">Cari Data</label>
+                        <input type="text" name="search" class="form-control" placeholder="Nama pelanggan atau ID..."
+                            value="{{ request('search') }}">
+                    </div>
+                    <div class="col-md-2 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-filter me-1"></i> Filter
+                        </button>
+                        <a href="{{ route('control.log') }}" class="btn btn-light border" title="Reset">
+                            <i class="fas fa-sync-alt"></i>
+                        </a>
+                    </div>
+                </form>
             </div>
-        @endif
-
-        @if ($errors->any())
-            <div class="alert alert-danger border-0 shadow-sm mb-4">
-                <ul class="mb-0">
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
+        </div>
 
         <div class="card border-0 shadow-sm">
             <div class="card-body p-0">
@@ -31,7 +43,7 @@
                                 <th>user_id</th>
                                 <th>Pengguna</th>
                                 <th>Aksi</th>
-                                <th>Deskrips</th>
+                                <th>Deskripsi</th>
                                 <th>Tanggal</th>
                             </tr>
                         </thead>
@@ -49,12 +61,12 @@
                                     </td>
                                     <td>
                                         <span class="fw-bold 'text-dark'">
-                                            {{ $action->title }}
+                                            {{ $action->name ?? '-' }}
                                         </span>
                                     </td>
                                     <td>
                                         <span class="fw-bold 'text-dark'">
-                                            {{ $action->action }}
+                                            {{ $action->description ?? '-' }}
                                         </span>
                                     </td>
                                     <td>

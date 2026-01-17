@@ -72,8 +72,7 @@
 
                                 <input type="number" id="qty_display" name="quantity" value="1" min="1"
                                     max="{{ $ingredient->stock_quantity }}"
-                                    class="form-control text-center fw-bold border-0 fs-4"
-                                    style="width: 80px; cursor: default" readonly>
+                                    class="form-control text-center fw-bold border-0 fs-4" style="width: 80px;">
 
                                 <button type="button" class="btn btn-primary rounded-circle" onclick="changeQty(1)"
                                     style="width: 45px; height: 45px;">+</button>
@@ -88,6 +87,18 @@
             </div>
         </div>
     </div>
+
+    <style>
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+    </style>
 
     <script>
         function changeQty(dir) {

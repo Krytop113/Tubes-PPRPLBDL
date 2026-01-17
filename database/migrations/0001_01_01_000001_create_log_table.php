@@ -12,8 +12,8 @@ return new class extends Migration
             $table->id();
             $table->string('user_id');
             $table->string('pengguna');
-            $table->string('title');
-            $table->text('action');
+            $table->string('name');
+            $table->text('description');
             $table->timestamps();
         });
     }

@@ -11,7 +11,7 @@ return new class extends Migration
             DROP PROCEDURE IF EXISTS delete_orders_procedure;
 
             CREATE PROCEDURE delete_orders_procedure(
-                IN p_id BIGINT
+                IN p_id VARCHAR(20)
             )
             BEGIN
                 DECLARE v_error_message VARCHAR(255);

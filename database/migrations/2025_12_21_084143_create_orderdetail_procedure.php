@@ -11,7 +11,7 @@ return new class extends Migration
             DROP PROCEDURE IF EXISTS create_orderdetail_procedure;
 
             CREATE PROCEDURE create_orderdetail_procedure(
-                IN p_order_id BIGINT,
+                IN p_order_id VARCHAR(20),
                 IN p_ingredient_id BIGINT,
                 IN p_quantity INT,
                 IN p_price DECIMAL(10,2)

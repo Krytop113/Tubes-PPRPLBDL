@@ -10,14 +10,22 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\NotificationController;
 use App\Models\Ingredient;
+use App\Models\OrderDetail;
 
 class PaymentController extends Controller
 {
     public function payment(Request $request)
     {
         $order = Order::findOrFail($request->order_id);
+        $orderItems = OrderDetail::with('ingredient')->where('order_id', $order->id)->get();
 
-        $shippingCost = (float) $request->shipping_cost;
+        foreach ($orderItems as $item) {
+            if ($item->ingredient->stock_quantity < $item->quantity) {
+                return redirect()->back()->with('error', "Stok produk {$item->ingredient->name} tidak mencukupi. Tersisa: {$item->ingredient->stock_quantity}");
+            }
+        }
+
+        $shippingCost = $request->shipping_cost;
         $couponUserId = $request->coupon_user_id;
 
         $couponAmount = 0;

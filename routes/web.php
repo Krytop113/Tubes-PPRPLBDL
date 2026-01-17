@@ -97,13 +97,13 @@ Route::middleware(['auth', 'role:admin,employee'])
         // control Recipes
         Route::get('/control/recipes', [RecipeController::class, 'indexcontrol'])
             ->name('control.recipes.index');
-        
+
         Route::get('/control/recipes/create', [RecipeController::class, 'create'])
             ->name('control.recipes.create');
         Route::post('/control/recipes', [RecipeController::class, 'store'])
             ->name('control.recipes.store');
-        
-            Route::get('/control/recipes/{recipe}', [RecipeController::class, 'edit'])
+
+        Route::get('/control/recipes/{recipe}', [RecipeController::class, 'edit'])
             ->name('control.recipes.edit');
         Route::put('/control/recipes/{recipe}', [RecipeController::class, 'update'])
             ->name('control.recipes.update');
@@ -120,17 +120,17 @@ Route::middleware(['auth', 'role:admin,employee'])
         // control Coupons
         Route::get('/control/coupons', [CouponController::class, 'indexcontrol'])
             ->name('control.coupons.index');
-        
+
         Route::get('/control/coupons/create', [CouponController::class, 'create'])
             ->name('control.coupons.create');
         Route::post('/control/coupons', [CouponController::class, 'store'])
             ->name('control.coupons.store');
-        
+
         Route::get('/control/coupons/{coupon}', [CouponController::class, 'edit'])
             ->name('control.coupons.edit');
         Route::put('/control/coupons/{coupon}', [CouponController::class, 'update'])
             ->name('control.coupons.update');
-        
+
         Route::delete('/control/coupons/{coupon}', [CouponController::class, 'destroy'])
             ->name('control.coupons.destroy');
 
@@ -142,10 +142,14 @@ Route::middleware(['auth', 'role:admin,employee'])
         /// Employee
         Route::get('/control/employee/index', [UserController::class, 'indexEmployee'])
             ->name('control.employee');
+
         Route::get('/control/employee/create', [UserController::class, 'createEmployee'])
             ->name('control.employee.create');
         Route::post('/control/employee/store', [UserController::class, 'storeEmployee'])
             ->name('control.employee.store');
+
+        Route::delete('/control/employee/{id}', [UserController::class, 'destroyEmployee'])
+            ->name('control.employee.destroy');
 
         //log
         Route::get('/log', [logController::class, 'index'])
@@ -193,8 +197,14 @@ Route::middleware(['auth', 'role:customer,employee,admin'])
             ->name('orders.index');
         Route::get('/orders/{order}', [OrderController::class, 'orderDetail'])
             ->name('orders.show');
+        Route::get('/orders/{order}/receipt', [OrderController::class, 'downloadReceipt'])
+            ->name('orders.download-receipt');
         Route::put('/orders/{order}/cancel', [OrderController::class, 'cancel'])
             ->name('orders.cancel');
+
+        Route::put('/orders/{order}/complete', [OrderController::class, 'complete'])
+            ->name('orders.complete');
+
 
         Route::get('/payment', function () {
             return redirect()->route('orders.index')

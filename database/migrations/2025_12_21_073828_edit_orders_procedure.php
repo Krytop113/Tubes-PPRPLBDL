@@ -11,7 +11,7 @@ return new class extends Migration
             DROP PROCEDURE IF EXISTS edit_orders_procedure;
 
             CREATE PROCEDURE edit_orders_procedure(
-                IN p_id BIGINT,
+                IN p_id VARCHAR(20),
                 IN p_status VARCHAR(255)
             )
             BEGIN

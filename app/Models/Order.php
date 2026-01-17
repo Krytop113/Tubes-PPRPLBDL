@@ -29,6 +29,9 @@ use Illuminate\Database\Eloquent\Model;
 class Order extends Model
 {
 	protected $table = 'orders';
+	public $incrementing = false;
+	protected $keyType = 'string';
+
 
 	protected $casts = [
 		'total_raw' => 'float',
@@ -36,6 +39,7 @@ class Order extends Model
 	];
 
 	protected $fillable = [
+		'id',
 		'status',
 		'total_raw',
 		'user_id'

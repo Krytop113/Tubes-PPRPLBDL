@@ -1,20 +1,20 @@
 @extends('layouts.control')
 
 @section('title', 'Laporan Pemesanan')
+@section('page-title', 'Manajemen Laporan Pemesanan')
 
 @section('content')
     <div class="container-fluid">
-        {{-- Header & Stats --}}
         <div class="row align-items-center mb-4">
             <div class="col-md-6">
-                <h3 class="fw-bold text-dark mb-1">Laporan Transaksi</h3>
+                <h3 class="fw-bold text-dark mb-1">Laporan Pemesanan</h3>
                 <p class="text-muted small">Menampilkan data berstatus <span class="badge bg-success">PAID</span> & <span
                         class="badge bg-primary">DONE</span></p>
             </div>
             <div class="col-md-6">
                 <div class="d-flex gap-3 justify-content-md-end">
                     <div class="card border-0 shadow-sm bg-white px-4 py-2 text-center">
-                        <small class="text-muted d-block">Jumlah Baris</small>
+                        <small class="text-muted d-block">Jumlah Pesanan</small>
                         <span class="h5 fw-bold text-primary mb-0">{{ $orders->count() }}</span>
                     </div>
                     <div class="card border-0 shadow-sm bg-success text-white px-4 py-2 text-center">
@@ -25,13 +25,10 @@
             </div>
         </div>
 
-        {{-- Filter Periode & Cari --}}
         <div class="card mb-4 border-0 shadow-sm">
             <div class="card-body">
                 <form action="" method="GET" class="row g-3 align-items-end">
-                    {{-- Input report_type disembunyikan agar saat submit filter, tab tidak berubah --}}
                     <input type="hidden" name="report_type" value="{{ request('report_type', 'order_only') }}">
-
                     <div class="col-md-3">
                         <label class="form-label small fw-bold text-uppercase text-muted">Dari Tanggal</label>
                         <input type="date" name="start_date" class="form-control" value="{{ request('start_date') }}">
@@ -57,10 +54,8 @@
             </div>
         </div>
 
-        {{-- Tabel Data --}}
         <div class="card border-0 shadow-sm">
             <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                {{-- Tombol Pembeda Tab --}}
                 <div class="btn-group p-1 bg-light rounded shadow-sm">
                     <a href="{{ request()->fullUrlWithQuery(['report_type' => 'order_only']) }}"
                         class="btn btn-sm px-4 {{ request('report_type') != 'top_items' ? 'btn-white shadow-sm fw-bold' : 'text-muted' }}">
@@ -84,16 +79,16 @@
                             <tr style="font-size: 0.75rem; letter-spacing: 0.5px;">
                                 @if (request('report_type') == 'top_items')
                                     <th class="ps-4 py-3">Bahan / Ingredient</th>
-                                    <th>Satuan</th>
-                                    <th>Total Kuantitas</th>
-                                    <th>Frekuensi</th>
+                                    <th class="ps-4 py-3">Satuan</th>
+                                    <th class="ps-4 py-3">Total Kuantitas</th>
+                                    <th class="ps-4 py-3">Frekuensi</th>
                                     <th class="text-end pe-4">Subtotal Omzet</th>
                                 @else
                                     <th class="ps-4 py-3">Info Pesanan</th>
-                                    <th>Waktu</th>
-                                    <th>Detail Barang</th>
-                                    <th>Total Bayar</th>
-                                    <th>Status</th>
+                                    <th class="ps-4 py-3">Waktu</th>
+                                    <th class="ps-4 py-3">Detail Barang</th>
+                                    <th class="ps-4 py-3">Total Bayar</th>
+                                    <th class="ps-4 py-3">Status</th>
                                 @endif
                             </tr>
                         </thead>

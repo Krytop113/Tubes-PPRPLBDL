@@ -16,7 +16,7 @@ return new class extends Migration
             IN p_total_amount DECIMAL(10, 2),
             IN p_method VARCHAR(255),
             IN p_date DATETIME,
-            IN p_order_id BIGINT,
+            IN p_order_id VARCHAR(20),
             IN p_coupon_id BIGINT
         )
         BEGIN

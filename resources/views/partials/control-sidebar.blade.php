@@ -57,10 +57,6 @@
                 class="nav-link {{ request()->is('control/log*') ? 'active' : '' }}">
                 <i class="fas fa-chart-bar"></i> Log Activity
             </a>
-
-            <a href="#" class="nav-link {{ request()->is('control/settings*') ? 'active' : '' }}">
-                <i class="fas fa-cog"></i> Settings
-            </a>
         @endif
     </div>
 </div>

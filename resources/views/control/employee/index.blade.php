@@ -60,12 +60,8 @@
 
                                     <td class="text-end pe-4">
                                         <div class="btn-group gap-2">
-                                            <a href="" class="btn btn-sm btn-outline-warning rounded border-0">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-
-                                            <form action="" method="POST" class="d-inline"
-                                                onsubmit="return confirm('Yakin ingin menghapus bahan ini?')">
+                                            <form action="{{ route('control.employee.destroy', $user->id) }}" method="POST" class="d-inline"
+                                                onsubmit="return confirm('Yakin ingin menghapus Karyawan ini?')">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit"
@@ -79,9 +75,9 @@
                             @empty
                                 <tr>
                                     <td colspan="6" class="text-center py-5 text-muted">
-                                        <img src="https://cdn-icons-png.flaticon.com/512/7486/7486744.png" width="80"
-                                            class="mb-3 opacity-50"><br>
-                                        Data Resep tidak ditemukan.
+                                        <i class="fas fa-user-tie fa-2x" style="color: #6c757d"></i>
+                                        <br>
+                                        Data Karyawan tidak ditemukan.
                                     </td>
                                 </tr>
                             @endforelse

@@ -4,30 +4,12 @@
 @section('page-title', 'Manajemen Bahan Baku')
 
 @section('content')
-    <div class="container-fluid">
-        @if (session('success'))
-            <div class="alert alert-success border-0 shadow-sm mb-4">
-                <i class="fas fa-check-circle me-2"></i> {{ session('success') }}
-            </div>
-        @endif
-
-        @if ($errors->any())
-            <div class="alert alert-danger border-0 shadow-sm mb-4">
-                <ul class="mb-0">
-                @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
-    </div>
 
     <div class="container-fluid">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h3 class="fw-bold text-dark mb-0">List Bahan Baku</h3>
             <div class="d-flex gap-2">
-                <button type="button" class="btn btn-success shadow-sm" data-bs-toggle="modal"
-                    data-bs-target="#quickAddModal">
+                <button type="button" class="btn btn-success shadow-sm" data-bs-toggle="modal" data-bs-target="#quickAddModal">
                     <i class="fas fa-bolt me-2"></i> Cepat Tambah Stok
                 </button>
                 <a href="{{ route('control.ingredients.create') }}" class="btn btn-primary shadow-sm">

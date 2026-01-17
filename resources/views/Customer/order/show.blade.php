@@ -4,7 +4,8 @@
     <div class="container py-5">
         <nav aria-label="breadcrumb" class="mb-4">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{ route('orders.index') }}" class="text-decoration-none">Orders</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('orders.index') }}" class="text-decoration-none">Orders</a>
+                </li>
                 <li class="breadcrumb-item active text-truncate" style="max-width: 200px;">#{{ $order->id }}</li>
             </ol>
         </nav>
@@ -43,8 +44,7 @@
                                             </div>
                                         </td>
                                         <td>Rp {{ number_format($item->detail_price, 0, ',', '.') }}</td>
-                                        <td class="text-center"><span
-                                                class="badge bg-light text-dark border">{{ $item->quantity }}</span></td>
+                                        <td class="text-center">{{ $item->quantity }}</td>
                                         <td class="text-end pe-3 fw-bold text-dark">
                                             Rp {{ number_format($item->detail_price * $item->quantity, 0, ',', '.') }}
                                         </td>
@@ -154,12 +154,25 @@
                                 @if ($order->status === 'cancel')
                                     <i class="fas fa-times-circle text-danger fa-4x mb-3"></i>
                                     <h6 class="fw-bold text-muted">Pesanan Dibatalkan</h6>
+                                    <a href="{{ route('orders.index') }}"
+                                        class="btn btn-outline-secondary btn-sm mt-3 rounded-pill px-4">Kembali ke
+                                        Daftar</a>
                                 @else
                                     <i class="fas fa-check-circle text-success fa-4x mb-3"></i>
-                                    <h6 class="fw-bold">Pembayaran Berhasil</h6>
+                                    <h6 class="fw-bold mb-3">Pembayaran Berhasil</h6>
+
+                                    <div class="d-grid gap-2 mx-3">
+                                        <a href="{{ route('orders.download-receipt', $order->id) }}"
+                                            class="btn btn-success rounded-3 fw-bold shadow-sm py-2">
+                                            <i class="fas fa-file-download me-2"></i> DOWNLOAD RESI
+                                        </a>
+
+                                        <a href="{{ route('orders.index') }}"
+                                            class="btn btn-link btn-sm text-muted text-decoration-none">
+                                            Kembali ke Daftar
+                                        </a>
+                                    </div>
                                 @endif
-                                <a href="{{ route('orders.index') }}"
-                                    class="btn btn-outline-secondary btn-sm mt-3 rounded-pill px-4">Kembali ke Daftar</a>
                             </div>
                         @endif
                     </div>

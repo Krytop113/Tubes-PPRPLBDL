@@ -17,7 +17,6 @@ return new class extends Migration
             BEGIN
                 DECLARE v_error_message VARCHAR(255);
                 DECLARE v_is_error BOOLEAN DEFAULT FALSE;
-                DECLARE v_order_id BIGINT;
                 DECLARE v_order_status VARCHAR(50);
 
                 DECLARE CONTINUE HANDLER FOR SQLEXCEPTION

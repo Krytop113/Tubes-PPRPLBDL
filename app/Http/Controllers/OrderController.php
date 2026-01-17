@@ -9,6 +9,9 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\Order;
 use App\Http\Controllers\NotificationController;
 use App\Models\Payment;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Exception;
+
 
 class OrderController extends Controller
 {
@@ -111,6 +114,75 @@ class OrderController extends Controller
             report($e);
             return back()->withErrors('Terjadi kesalahan saat memproses pembatalan.');
         }
+    }
+
+    public function complete(Order $order)
+    {
+        $userId = Auth::id();
+
+        if ($order->user_id !== $userId) {
+            return back()->withErrors('Anda tidak memiliki akses untuk menyelesaikan pesanan ini.');
+        }
+
+        if ($order->status !== 'paid') {
+            return back()->withErrors('Hanya pesanan dengan status Paid yang dapat diselesaikan.');
+        }
+
+        DB::beginTransaction();
+
+        try {
+            $result = DB::select('CALL edit_orders_procedure(?, ?)', [
+                $order->id,
+                'Done'
+            ]);
+
+            if (!empty($result) && isset($result[0]->ErrorDetail)) {
+                throw new \Exception($result[0]->ErrorDetail);
+            }
+
+            foreach ($order->order_details as $detail) {
+                $result = DB::select('CALL edit_orderdetail_procedure(?, ?)', [
+                    $detail->id,
+                    'Done'
+                ]);
+
+                if (!empty($result) && isset($result[0]->ErrorDetail)) {
+                    throw new \Exception($result[0]->ErrorDetail);
+                }
+            }
+
+            NotificationController::orderDone($userId, $order->id);
+
+            DB::commit();
+
+            return redirect()
+                ->route('orders.index')
+                ->with('success', 'Order #' . $order->id . ' berhasil diselesaikan. Terima kasih!');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            report($e);
+            return back()->withErrors('Terjadi kesalahan saat menyelesaikan pesanan: ' . $e->getMessage());
+        }
+    }
+
+    public function downloadReceipt(Order $order)
+    {
+        if ($order->user_id !== Auth::id()) {
+            abort(403, 'Anda tidak memiliki akses ke resi ini.');
+        }
+
+        $payment = Payment::where('order_id', $order->id)->first();
+        $orderDetails = $order->order_details()->with('ingredient')->get();
+        $logo = public_path('logo.png');
+
+        $pdf = Pdf::loadView('customer.order.receipt_pdf', [
+            'order' => $order,
+            'orderDetails' => $orderDetails,
+            'payment' => $payment,
+            'logo' => $logo,
+        ]);
+
+        return $pdf->download('Resi-Pesanan-#' . $order->id . '.pdf');
     }
 
     // Control Panel View

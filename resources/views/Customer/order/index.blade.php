@@ -1,25 +1,8 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="container-fluid">
-        @if (session('success'))
-            <div class="alert alert-success border-0 shadow-sm mb-4">
-                <i class="fas fa-check-circle me-2"></i> {{ session('success') }}
-            </div>
-        @endif
-
-        @if ($errors->any())
-            <div class="alert alert-danger border-0 shadow-sm mb-4">
-                <ul class="mb-0">
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
-    </div>
-
     <div class="container py-5">
+
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
                 <h3 class="fw-bold text-dark mb-1">Daftar Pesanan</h3>
@@ -33,20 +16,20 @@
                 Semua
             </a>
             <a href="{{ route('orders.index', ['status' => 'pending']) }}"
-                class="btn rounded-pill px-4 btn-sm {{ $status == 'pending' ? 'btn-warning' : 'btn-light border' }}">
-                <i class="fas fa-clock me-1 text-warning"></i> Pending
+                class="btn rounded-pill px-4 btn-sm {{ $status == 'pending' ? 'btn-warning text-white' : 'btn-light border' }}">
+                <i class="fas fa-clock me-1"></i> Pending
             </a>
             <a href="{{ route('orders.index', ['status' => 'paid']) }}"
                 class="btn rounded-pill px-4 btn-sm {{ $status == 'paid' ? 'btn-info text-white' : 'btn-light border' }}">
-                <i class="fas fa-check-circle me-1 text-info"></i> Paid
+                <i class="fas fa-check-circle me-1"></i> Paid
             </a>
             <a href="{{ route('orders.index', ['status' => 'order']) }}"
-                class="btn rounded-pill px-4 btn-sm {{ $status == 'order' ? 'btn-success' : 'btn-light border' }}">
-                <i class="fas fa-box me-1 text-success"></i> Done
+                class="btn rounded-pill px-4 btn-sm {{ $status == 'order' ? 'btn-success text-white' : 'btn-light border' }}">
+                <i class="fas fa-box me-1"></i> Done
             </a>
             <a href="{{ route('orders.index', ['status' => 'cancel']) }}"
-                class="btn rounded-pill px-4 btn-sm {{ $status == 'cancel' ? 'btn-danger' : 'btn-light border' }}">
-                <i class="fas fa-times-circle me-1 text-danger"></i> Cancel
+                class="btn rounded-pill px-4 btn-sm {{ $status == 'cancel' ? 'btn-danger text-white' : 'btn-light border' }}">
+                <i class="fas fa-times-circle me-1"></i> Cancel
             </a>
         </div>
 
@@ -63,57 +46,70 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse($orders as $order)
+                        @forelse ($orders as $order)
                             <tr>
-                                <td class="ps-4">
-                                    <span class="fw-bold text-dark">#{{ $order->id }}</span>
-                                </td>
+                                <td class="ps-4 fw-bold text-dark">#{{ $order->id }}</td>
                                 <td>
                                     <div class="d-flex flex-column">
-                                        <span
-                                            class="text-dark">{{ \Carbon\Carbon::parse($order->created_at)->format('d M Y') }}</span>
-                                        <small
-                                            class="text-muted">{{ \Carbon\Carbon::parse($order->created_at)->format('H:i') }}
-                                            WIB</small>
+                                        <span>{{ $order->created_at->format('d M Y') }}</span>
+                                        <small class="text-muted">{{ $order->created_at->format('H:i') }} WIB</small>
                                     </div>
                                 </td>
-                                <td>
-                                    <span class="fw-bold text-primary">
-                                        Rp {{ number_format($order->total_raw, 0, ',', '.') }}
-                                    </span>
+                                <td class="fw-bold text-primary">
+                                    Rp {{ number_format($order->total_raw, 0, ',', '.') }}
                                 </td>
                                 <td>
                                     @switch($order->status)
                                         @case('pending')
-                                            <span class="badge rounded-pill bg-warning-subtle text-warning px-3">Pending</span>
+                                            <span class="badge rounded-pill bg-warning-subtle px-3">Pending</span>
                                         @break
 
                                         @case('paid')
-                                            <span class="badge rounded-pill bg-info-subtle text-info px-3">Paid</span>
+                                            <span class="badge rounded-pill bg-info-subtle px-3">Paid</span>
                                         @break
 
-                                        @case('order')
-                                            <span class="badge rounded-pill bg-success-subtle text-success px-3">Selesai</span>
+                                        @case('done')
+                                            <span class="badge rounded-pill bg-success-subtle px-3">Done</span>
                                         @break
 
                                         @case('cancel')
-                                            <span class="badge rounded-pill bg-danger-subtle text-danger px-3">Cancel</span>
+                                            <span class="badge rounded-pill bg-danger-subtle px-3">Cancel</span>
                                         @break
+
+                                        @default
+                                            <span class="badge rounded-pill bg-secondary px-3">Unknown</span>
                                     @endswitch
                                 </td>
                                 <td class="pe-4 text-end">
-                                    <a href="{{ route('orders.show', $order->id) }}"
-                                        class="btn btn-light btn-sm border shadow-sm">
-                                        <i class="fas fa-eye me-1 text-muted"></i> Detail
-                                    </a>
+                                    <div class="d-flex justify-content-end gap-2">
+                                        @if ($order->status === 'paid')
+                                            <button type="button" class="btn btn-success btn-sm shadow-sm btn-complete"
+                                                data-id="{{ $order->id }}">
+                                                <i class="fas fa-check"></i>
+                                                <span class="d-none d-md-inline ms-1">Mark as Done</span>
+                                            </button>
+
+                                            <form id="done-form-{{ $order->id }}"
+                                                action="{{ route('orders.complete', $order->id) }}" method="POST"
+                                                class="d-none">
+                                                @csrf
+                                                @method('PUT')
+                                            </form>
+                                        @endif
+                                        <a href="{{ route('orders.show', $order->id) }}"
+                                            class="btn btn-light btn-sm border shadow-sm">
+                                            <i class="fas fa-eye text-muted"></i>
+                                            <span class="d-none d-md-inline ms-1 text-muted">Detail</span>
+                                        </a>
+                                    </div>
                                 </td>
                             </tr>
                             @empty
                                 <tr>
                                     <td colspan="5" class="py-5 text-center">
                                         <img src="https://cdn-icons-png.flaticon.com/512/7486/7486744.png" width="80"
-                                            class="mb-3 opacity-50"><br>
-                                        <p class="text-muted">Belum ada pesanan yang masuk.</p>
+                                            class="mb-3 opacity-50">
+                                        <p class="text-muted">Belum ada pesanan.</p>
                                     </td>
                                 </tr>
                             @endforelse
@@ -121,44 +117,79 @@
                     </table>
                 </div>
             </div>
-        </div>
 
+        </div>
         <style>
             .fs-xs {
                 font-size: 0.75rem;
             }
 
             .bg-warning-subtle {
-                background-color: #fff3cd !important;
-                color: #856404 !important;
+                background-color: #fff3cd;
+                color: #856404;
             }
 
             .bg-info-subtle {
-                background-color: #cff4fc !important;
-                color: #055160 !important;
+                background-color: #cff4fc;
+                color: #055160;
             }
 
             .bg-success-subtle {
-                background-color: #d1e7dd !important;
-                color: #0f5132 !important;
+                background-color: #d1e7dd;
+                color: #0f5132;
             }
 
             .bg-danger-subtle {
-                background-color: #f8d7da !important;
-                color: #842029 !important;
+                background-color: #f8d7da;
+                color: #842029;
             }
 
             .table thead th {
-                letter-spacing: 0.05em;
+                letter-spacing: .05em;
                 border-bottom: 1px solid #f0f0f0;
-            }
-
-            .table tbody tr {
-                transition: all 0.2s ease;
             }
 
             .table tbody tr:hover {
                 background-color: #fcfcfc;
             }
         </style>
+
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const completeButtons = document.querySelectorAll('.btn-complete');
+
+                completeButtons.forEach(button => {
+                    button.addEventListener('click', function() {
+                        const orderId = this.getAttribute('data-id');
+                        const targetForm = document.getElementById('done-form-' + orderId);
+
+                        Swal.fire({
+                            title: 'Konfirmasi Pesanan',
+                            text: "Apakah pesanan sudah selesai?",
+                            icon: 'question',
+                            showCancelButton: true,
+                            confirmButtonColor: '#198754',
+                            cancelButtonColor: '#6c757d',
+                            confirmButtonText: 'Ya, Selesaikan',
+                            cancelButtonText: 'Batal',
+                            reverseButtons: true,
+                            customClass: {
+                                popup: 'rounded-4',
+                                confirmButton: 'rounded-3 px-4',
+                                cancelButton: 'rounded-3 px-4'
+                            }
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                if (targetForm) {
+                                    targetForm.submit();
+                                } else {
+                                    console.error("Form tidak ditemukan untuk ID: " + orderId);
+                                }
+                            }
+                        });
+                    });
+                });
+            });
+        </script>
     @endsection

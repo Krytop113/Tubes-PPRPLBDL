@@ -5,25 +5,12 @@
         <div class="row justify-content-center">
             <div class="col-md-10">
 
-                @if ($errors->any())
-                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                        <strong><i class="fas fa-exclamation-triangle"></i> Terjadi Kesalahan!</strong>
-                        <ul class="mb-0 mt-2">
-                            @foreach ($errors->all() as $error)
-                                <li>{{ $error }}</li>
-                            @endforeach
-                        </ul>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                @endif
-
                 <div class="card shadow-sm">
                     <div class="card-header bg-white py-3">
                         <h5 class="mb-0 fw-bold text-primary">Tambah Bahan Baku Baru</h5>
                     </div>
                     <div class="card-body p-4">
-                        <form action="{{ route('control.ingredients.store') }}" method="POST"
-                            enctype="multipart/form-data">
+                        <form action="{{ route('control.ingredients.store') }}" method="POST" enctype="multipart/form-data">
                             @csrf
 
                             <div class="row">

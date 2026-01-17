@@ -40,41 +40,52 @@ class NotificationController extends Controller
     {
         self::createNotification(
             $user->id,
-            'Welcome!',
-            'Account Registered',
-            'Your account has been successfully registered.'
+            'Selamat datang di kriuk-kriuk!',
+            'Akun berhasil teregistrasi',
+            'Selamat datang di kriuk kriuk, silahkan bisa mengeksplor layanan bahanbaku dan resep yang berkualitas, diambil dari berbagai sumber. Selamat berbelanja!'
         );
     }
 
-    public static function orderCheckout(int $user, int $orderId): void
+    public static function orderCheckout(int $user, string $orderId): void
     {
         self::createNotification(
             $user,
-            'Order Checkout',
-            'Order Successfully Checked Out',
-            "Your order #{$orderId} has been successfully checked out and waiting for processing."
+            'Pesanan Dibuat',
+            "Pesanan {$orderId} berhasil dibuat",
+            "Pesanan dengan id #{$orderId} telah dibuat dan sedang menunggu konfirmasi pembayaran."
         );
     }
 
-    public static function orderProcessing(int $user, int $orderId): void
+    public static function orderProcessing(int $user, string $orderId): void
     {
         self::createNotification(
             $user,
-            'Order Processing',
-            'Order Now Being Processed',
-            "Your order #{$orderId} is now being processed."
+            'Pesanan berhasil diproses',
+            "Pesanan {$orderId} sedang diproses toko",
+            "Pesanan dengan id #{$orderId} telah masuk ke dalam sistem toko dan sedang diproses oleh toko."
         );
     }
 
-    public static function orderCancel(int $userId, int $orderId): void
+    public static function orderCancel(int $userId, string $orderId): void
     {
         self::createNotification(
             $userId,
-            'Order Cancelled',
-            'Order Cancelled',
-            "Your order #{$orderId} has been cancelled."
+            'Pesanan Dibatalkan',
+            "Order {$orderId} dibatalkan",
+            "Pesanan dengan id #{$orderId} telah dibatalkan oleh pelanggan."
         );
     }
+
+    public static function orderDone(int $userId, string $orderId): void
+    {
+        self::createNotification(
+            $userId,
+            'Pesanan Selesai',
+            'Pesanan telah selesai sampai pelanggan',
+            "Pesanan {$orderId} telah sampai dengan selamat ke dalam tangan pelanggan. Selamat memasak!"
+        );
+    }
+
 
     public function index()
     {

@@ -11,8 +11,11 @@ return new class extends Migration
         DB::unprepared('
             CREATE TRIGGER log_ingredient_insert AFTER INSERT ON ingredients
             FOR EACH ROW BEGIN
-                INSERT INTO log (user_id, pengguna, title, action, created_at, updated_at)
-                VALUES ("SYSTEM", "System", "Ingredient Created", CONCAT("Menambah bahan: ", NEW.name), NOW(), NOW());
+                SET @uid = COALESCE(@current_user_id, "SYSTEM");
+                SET @uname = COALESCE(@current_user_name, "SYSTEM");
+                
+                INSERT INTO log (user_id, pengguna, name, description, created_at, updated_at)
+                VALUES (@uid, @uname, "Ingredient Created", CONCAT("Menambah bahan: ", NEW.name), NOW(), NOW());
             END;
         ');
 
@@ -20,6 +23,8 @@ return new class extends Migration
             CREATE TRIGGER log_ingredient_update AFTER UPDATE ON ingredients
             FOR EACH ROW BEGIN
                 DECLARE deskripsi_perubahan TEXT DEFAULT "";
+                SET @uid = COALESCE(@current_user_id, "SYSTEM");
+                SET @uname = COALESCE(@current_user_name, "SYSTEM");
 
                 IF OLD.name <> NEW.name THEN 
                     SET deskripsi_perubahan = CONCAT(deskripsi_perubahan, "Nama: ", OLD.name, " -> ", NEW.name, ". ");
@@ -34,8 +39,8 @@ return new class extends Migration
                 END IF;
 
                 IF deskripsi_perubahan <> "" THEN
-                    INSERT INTO log (user_id, pengguna, title, action, created_at, updated_at)
-                    VALUES ("SYSTEM", "System", "Ingredient Updated", CONCAT("Perubahan pada bahan ", OLD.name, ": ", deskripsi_perubahan), NOW(), NOW());
+                    INSERT INTO log (user_id, pengguna, name, description, created_at, updated_at)
+                    VALUES (@uid, @uname, "Ingredient Updated", CONCAT("Perubahan pada bahan ", OLD.name, ": ", deskripsi_perubahan), NOW(), NOW());
                 END IF;
             END;
         ');
@@ -43,8 +48,11 @@ return new class extends Migration
         DB::unprepared('
             CREATE TRIGGER log_ingredient_delete AFTER DELETE ON ingredients
             FOR EACH ROW BEGIN
-                INSERT INTO log (user_id, pengguna, title, action, created_at, updated_at)
-                VALUES ("SYSTEM", "System", "Ingredient Deleted", CONCAT("Menghapus bahan: ", OLD.name), NOW(), NOW());
+                SET @uid = COALESCE(@current_user_id, "SYSTEM");
+                SET @uname = COALESCE(@current_user_name, "SYSTEM");
+
+                INSERT INTO log (user_id, pengguna, name, description, created_at, updated_at)
+                VALUES (@uid, @uname, "Ingredient Deleted", CONCAT("Menghapus bahan: ", OLD.name), NOW(), NOW());
             END;
         ');
 
@@ -52,8 +60,11 @@ return new class extends Migration
         DB::unprepared('
             CREATE TRIGGER log_recipe_insert AFTER INSERT ON recipes
             FOR EACH ROW BEGIN
-                INSERT INTO log (user_id, pengguna, title, action, created_at, updated_at)
-                VALUES ("SYSTEM", "System", "Recipe Created", CONCAT("Menambah resep: ", NEW.name), NOW(), NOW());
+                SET @uid = COALESCE(@current_user_id, "SYSTEM");
+                SET @uname = COALESCE(@current_user_name, "SYSTEM");
+                
+                INSERT INTO log (user_id, pengguna, name, description, created_at, updated_at)
+                VALUES (@uid, @uname, "Recipe Created", CONCAT("Menambah resep: ", NEW.name), NOW(), NOW());
             END;
         ');
 
@@ -61,6 +72,8 @@ return new class extends Migration
             CREATE TRIGGER log_recipe_update AFTER UPDATE ON recipes
             FOR EACH ROW BEGIN
                 DECLARE msg TEXT DEFAULT "";
+                SET @uid = COALESCE(@current_user_id, "SYSTEM");
+                SET @uname = COALESCE(@current_user_name, "SYSTEM");
 
                 IF OLD.name <> NEW.name THEN 
                     SET msg = CONCAT(msg, "Nama resep berubah dari ", OLD.name, " menjadi ", NEW.name);
@@ -71,16 +84,19 @@ return new class extends Migration
                 END IF;
 
                 IF msg <> "" THEN
-                    INSERT INTO log (user_id, pengguna, title, action, created_at, updated_at)
-                    VALUES ("SYSTEM", "System", "Recipe Updated", msg, NOW(), NOW());
+                    INSERT INTO log (user_id, pengguna, name, description, created_at, updated_at)
+                    VALUES (@uid, @uname, "Recipe Updated", msg, NOW(), NOW());
                 END IF;
             END;
         ');
         DB::unprepared('
             CREATE TRIGGER log_recipe_delete AFTER DELETE ON recipes
             FOR EACH ROW BEGIN
-                INSERT INTO log (user_id, pengguna, title, action, created_at, updated_at)
-                VALUES ("SYSTEM", "System", "Recipe Deleted", CONCAT("Menghapus resep: ", OLD.name), NOW(), NOW());
+                SET @uid = COALESCE(@current_user_id, "SYSTEM");
+                SET @uname = COALESCE(@current_user_name, "SYSTEM");
+                
+                INSERT INTO log (user_id, pengguna, name, description, created_at, updated_at)
+                VALUES (@uid, @uname, "Recipe Deleted", CONCAT("Menghapus resep: ", OLD.name), NOW(), NOW());
             END;
         ');
 
@@ -88,17 +104,23 @@ return new class extends Migration
         DB::unprepared('
             CREATE TRIGGER log_coupon_insert AFTER INSERT ON coupons
             FOR EACH ROW BEGIN
-                INSERT INTO log (user_id, pengguna, title, action, created_at, updated_at)
-                VALUES ("SYSTEM", "System", "Coupon Created", CONCAT("Menambah kupon: ", NEW.title), NOW(), NOW());
+                SET @uid = COALESCE(@current_user_id, "SYSTEM");
+                SET @uname = COALESCE(@current_user_name, "SYSTEM");
+                
+                INSERT INTO log (user_id, pengguna, name, description, created_at, updated_at)
+                VALUES (@uid, @uname, "Coupon Created", CONCAT("Menambah kupon: ", NEW.title), NOW(), NOW());
             END;
         ');
 
         DB::unprepared('
             CREATE TRIGGER log_coupon_update AFTER UPDATE ON coupons
             FOR EACH ROW BEGIN
+                SET @uid = COALESCE(@current_user_id, "SYSTEM");
+                SET @uname = COALESCE(@current_user_name, "SYSTEM");
+
                 IF OLD.discount_percentage <> NEW.discount_percentage THEN
-                    INSERT INTO log (user_id, pengguna, title, action, created_at, updated_at)
-                    VALUES ("SYSTEM", "System", "Coupon Updated", 
+                    INSERT INTO log (user_id, pengguna, name, description, created_at, updated_at)
+                    VALUES (@uid, @uname, "Coupon Updated", 
                     CONCAT("Diskon kupon ", OLD.title, " berubah: ", OLD.discount_percentage, "% -> ", NEW.discount_percentage, "%"), 
                     NOW(), NOW());
                 END IF;
@@ -108,8 +130,11 @@ return new class extends Migration
         DB::unprepared('
             CREATE TRIGGER log_coupon_delete AFTER DELETE ON coupons
             FOR EACH ROW BEGIN
-                INSERT INTO log (user_id, pengguna, title, action, created_at, updated_at)
-                VALUES ("SYSTEM", "System", "Coupon Deleted", CONCAT("Menghapus kupon: ", OLD.title), NOW(), NOW());
+                SET @uid = COALESCE(@current_user_id, "SYSTEM");
+                SET @uname = COALESCE(@current_user_name, "SYSTEM");
+
+                INSERT INTO log (user_id, pengguna, name, description, created_at, updated_at)
+                VALUES (@uid, @uname, "Coupon Deleted", CONCAT("Menghapus kupon: ", OLD.title), NOW(), NOW());
             END;
         ');
     }

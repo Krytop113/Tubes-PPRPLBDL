@@ -97,9 +97,9 @@ class UserController extends Controller
                 [
                     $request->name,
                     $request->email,
-                    $request->phone,
-                    $request->date_of_birth,
-                    Hash::make($request->password)
+                    $request->phone_number,
+                    Hash::make($request->password),
+                    $request->date_of_birth
                 ]
             );
 
@@ -114,16 +114,26 @@ class UserController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             report($e);
-            return back()->withErrors('Gagal menyimpan data');
+            return back()->withErrors('Gagal menyimpan data: ' . $e->getMessage());
         }
     }
 
+    public function destroyEmployee($id)
+    {
+        DB::beginTransaction();
+        try {
+            $result = DB::select('CALL delete_employee_procedure(?)', [$id]);
+            if (!empty($result) && isset($result[0]->ErrorDetail)) {
+                throw new Exception($result[0]->ErrorDetail);
+            }
 
-    public function editEmployee($id) {}
+            DB::commit();
+            return back()->with('success', 'Karyawan berhasil dihapus!');
 
-
-    public function updateEmployee($id) {}
-
-
-    public function destroyEmployee($id) {}
+        } catch (\Exception $e) {
+            DB::rollBack();
+            report($e);
+            return back()->withErrors('Gagal menghapus data: ' . $e->getMessage());
+        }
+    }
 }

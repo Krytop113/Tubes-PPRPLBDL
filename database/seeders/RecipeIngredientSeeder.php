@@ -53,8 +53,8 @@ class RecipeIngredientSeeder extends Seeder
                 'id' => 6,
                 'recipe_id' => 3,
                 'ingredient_id' => 10,
-                'quantity_required' => 1,
-                'unit' => 'kg',
+                'quantity_required' => 300,
+                'unit' => 'gram',
             ],
             [
                 'id' => 7,
@@ -102,8 +102,8 @@ class RecipeIngredientSeeder extends Seeder
                 'id' => 13,
                 'recipe_id' => 5,
                 'ingredient_id' => 2,
-                'quantity_required' => 50,
-                'unit' => 'gram',
+                'quantity_required' => 1,
+                'unit' => 'pcs',
             ],
         ];
 
