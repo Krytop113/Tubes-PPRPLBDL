@@ -113,40 +113,85 @@
             </div>
         </nav>
 
-        <main class="flex-grow-1 py-4">
+        <main class="flex-grow-1 py-4 min-vh-100">
             @yield('content')
         </main>
 
-        <footer class="bg-dark text-light">
-            <div class="container py-4">
-                <div class="row">
-                    <div class="col-md-4 mb-3">
-                        <h6 class="fw-bold">Tentang Kami</h6>
-                        <p class="text-light small mb-0">
-                            Penyedia bumbu, daging, dan bahan pangan berkualitas sejak 1990.
+        <footer class="footer-custom py-5 mt-auto">
+            <div class="container">
+                <div class="row g-4">
+                    <div class="col-lg-4 col-md-6">
+                        <a class="navbar-brand fw-bold text-primary mb-3 d-block" href="/">
+                            <i class="bi bi-cloud-check-fill me-2"></i>Kriuk<span class="text-dark">Kriuk</span>
+                        </a>
+                        <p class="small text-muted pe-lg-5">
+                            Platform manajemen dapur modern untuk pecinta kuliner Indonesia. Kami membantu Anda
+                            mengelola resep, bahan baku, dan inventaris secara efisien dalam satu tempat.
                         </p>
+                        <div class="d-flex gap-3 mt-4">
+                            <a href="#" class="text-secondary fs-5 hover-blue"><i
+                                    class="bi bi-instagram"></i></a>
+                            <a href="https://github.com/Krytop113" class="text-secondary fs-5 hover-blue"><i
+                                    class="bi bi-github"></i></a>
+                            <a href="#" class="text-secondary fs-5 hover-blue"><i
+                                    class="bi bi-linkedin"></i></a>
+                        </div>
                     </div>
 
-                    <div class="col-md-4 mb-3">
-                        <h6 class="fw-bold">Link Cepat</h6>
+                    <div class="col-lg-2 col-md-6 col-6">
+                        <h6 class="fw-bold text-dark mb-3 small text-uppercase tracking-wider">Fitur Utama</h6>
                         <ul class="list-unstyled small">
-                            <li><a href="{{ route('ingredients.index') }}" class="text-light">Belanja Bahan</a></li>
-                            <li><a href="{{ route('recipes.index') }}" class="text-light">Cari Resep</a></li>
+                            <li class="mb-2"><a href="{{ route('recipes.index') }}"
+                                    class="text-decoration-none text-muted hover-blue">Daftar Resep</a></li>
+                            <li class="mb-2"><a href="{{ route('ingredients.index') }}"
+                                    class="text-decoration-none text-muted hover-blue">Manajemen Bahan</a></li>
+                            <li class="mb-2"><a href="{{ route('coupons.index') }}"
+                                    class="text-decoration-none text-muted hover-blue">Kupon Belanja</a></li>
+                            <li class="mb-2"><a href="{{ route('cart.index') }}"
+                                    class="text-decoration-none text-muted hover-blue">Keranjang Saya</a></li>
                         </ul>
                     </div>
 
-                    <div class="col-md-4 mb-3">
-                        <h6 class="fw-bold">Kontak</h6>
-                        <p class="text-light small mb-1">Jl. Industri No. 123, Jakarta</p>
-                        <p class="text-light small mb-0">info@kriukkriuk.id</p>
+                    <div class="col-lg-2 col-md-6 col-6">
+                        <h6 class="fw-bold text-dark mb-3 small text-uppercase tracking-wider">Perusahaan</h6>
+                        <ul class="list-unstyled small">
+                            <li class="mb-2"><a href="#"
+                                    class="text-decoration-none text-muted hover-blue">Tentang Kami</a></li>
+                            <li class="mb-2"><a href="#"
+                                    class="text-decoration-none text-muted hover-blue">Karir</a></li>
+                            <li class="mb-2"><a href="#"
+                                    class="text-decoration-none text-muted hover-blue">Kebijakan Privasi</a></li>
+                            <li class="mb-2"><a href="#"
+                                    class="text-decoration-none text-muted hover-blue">Syarat & Ketentuan</a></li>
+                        </ul>
+                    </div>
+
+                    <div class="col-lg-3 col-md-6">
+                        <h6 class="fw-bold text-dark mb-3 small text-uppercase tracking-wider">Dukungan</h6>
+                        <ul class="list-unstyled small">
+                            <li class="mb-2"><a href="#"
+                                    class="text-decoration-none text-muted hover-blue">Pusat Bantuan</a></li>
+                            <li class="mb-2"><a href="#"
+                                    class="text-decoration-none text-muted hover-blue">Hubungi CS</a></li>
+                            <li class="mb-2 text-muted"><i class="bi bi-geo-alt me-2"></i> Bandung, Jawa Barat</li>
+                            <li class="mb-2 text-muted"><i class="bi bi-envelope me-2"></i> help@kriukkriuk.com</li>
+                        </ul>
                     </div>
                 </div>
-            </div>
 
-            <div class="text-center bg-dark py-2 border-top border-secondary">
-                <small class="text-light">
-                    © {{ date('Y') }} <strong>KriukKriuk</strong>. All Rights Reserved.
-                </small>
+                <hr class="my-4" style="border-top: 1px solid var(--border-color); opacity: 0.5;">
+
+                <div class="row align-items-center">
+                    <div class="col-md-6 text-center text-md-start">
+                        <p class="small text-muted mb-0">
+                            &copy; 2026 <strong>KriukKriuk System</strong>. All rights reserved.
+                        </p>
+                    </div>
+                    <div class="col-md-6 text-center text-md-end mt-3 mt-md-0">
+                        <span class="small text-muted">Dibuat dengan ❤️ oleh <a href="https://github.com/Krytop113"
+                                class="text-decoration-none text-primary fw-bold">Javier, Gearald, Marco</a></span>
+                    </div>
+                </div>
             </div>
         </footer>
     </div>
@@ -154,9 +199,48 @@
     @include('components.notification')
 
     <style>
+        :root {
+            --primary-blue: #0d6efd;
+            --border-color: #e9ecef;
+            --bg-light: #f4f7fa;
+            --card-bg: #ffffff;
+        }
+
+        body {
+            background-color: var(--bg-light);
+            color: #495057;
+            font-family: 'Nunito', sans-serif;
+        }
+
+        .navbar-custom {
+            background-color: var(--card-bg) !important;
+            border-bottom: 1px solid var(--border-color);
+            padding: 0.8rem 0;
+        }
+
+        .footer-custom {
+            background-color: #ffffff;
+            border-top: 1px solid var(--border-color);
+            color: #6c757d;
+        }
+
+        .btn-login {
+            background-color: var(--primary-blue);
+            border: none;
+            font-weight: 600;
+            padding: 0.6rem 1.5rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-login:hover {
+            background-color: #0b5ed7;
+            transform: translateY(-1px);
+        }
+
         flowise-chatbot-button {
             transition: transform 0.3s ease-in-out !important;
-            transform: translateX(40px);
+            transform: translateX(30px);
         }
 
         flowise-chatbot-button:hover {
@@ -174,7 +258,7 @@
             chatWindow: {
                 welcomeMessage: "Halo! Selamat datang di KriukKriuk. Mau cari resep masakan Indonesia apa hari ini?",
                 backgroundColor: "#ffffff",
-                fontSize: 16,
+                fontSize: 12,
                 botMessage: {
                     backgroundColor: "#f7f8ff",
                     textColor: "#303235",
@@ -196,7 +280,7 @@
                     backgroundColor: "#ff9800",
                     right: 35,
                     bottom: 25,
-                    size: "large",
+                    size: "medium",
                     iconColor: "white",
                 }
             }
