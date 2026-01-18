@@ -38,7 +38,8 @@
                                                         value="{{ $id }}" class="form-check-input item-checkbox"
                                                         data-price="{{ $item->price }}" data-qty="{{ $item->quantity }}">
                                                 </td>
-                                                <td><span class="fw-bold">{{ $item->name }} ({{ $item->unit }})</span>
+                                                <td><span class="fw-bold">{{ $item->name }}
+                                                        ({{ $item->unit ?? '' }})</span>
                                                 </td>
                                                 <td>Rp {{ number_format($item->price, 0, ',', '.') }}</td>
                                                 <td class="text-center">
@@ -162,7 +163,31 @@
             });
         }
 
-        checkboxes.forEach(cb => cb.addEventListener('change', updateSummary));
+        const highlightItems = @json(session('highlight_items', []));
+        if (highlightItems.length > 0) {
+            checkboxes.forEach(cb => cb.checked = false);
+
+            highlightItems.forEach(id => {
+                const cb = document.querySelector(`.item-checkbox[value="${id}"]`);
+                if (cb) cb.checked = true;
+            });
+
+            if (selectAll) {
+                const allChecked = Array.from(checkboxes).every(c => c.checked);
+                selectAll.checked = allChecked;
+            }
+            updateSummary();
+        }
+
+        checkboxes.forEach(cb => {
+            cb.addEventListener('change', function() {
+                updateSummary();
+                if (selectAll) {
+                    const allChecked = Array.from(checkboxes).every(c => c.checked);
+                    selectAll.checked = allChecked;
+                }
+            });
+        });
 
         const deleteModal = document.getElementById('deleteModal');
         if (deleteModal) {

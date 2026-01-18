@@ -47,11 +47,13 @@ class CartController extends Controller
         $multiplier = $request->serving_order;
         $cart = session()->get('cart', []);
         $errors = [];
+        $addedItemIds = [];
 
         foreach ($recipeingredients as $ri) {
             $ingredient = DB::table('ingredients')->where('id', $ri->ingredient_id)->first();
 
-            if (!$ingredient) continue;
+            if (!$ingredient)
+                continue;
 
             $neededQty = $ri->quantity_required * $multiplier;
             $prodId = $ingredient->id;
@@ -67,13 +69,14 @@ class CartController extends Controller
             } else {
                 $cart[$prodId] = [
                     "product_id" => $prodId,
-                    "name"       => $ingredient->name,
-                    "quantity"   => $neededQty,
-                    "price"      => $ingredient->price_per_unit,
-                    "image"      => $ingredient->image_url,
-                    "unit"       => $ingredient->unit
+                    "name" => $ingredient->name,
+                    "quantity" => $neededQty,
+                    "price" => $ingredient->price_per_unit,
+                    "image" => $ingredient->image_url,
+                    "unit" => $ingredient->unit
                 ];
             }
+            $addedItemIds[] = $prodId;
         }
 
         $cartTotal = $this->calculateCartTotal($cart);
@@ -85,14 +88,15 @@ class CartController extends Controller
         }
 
         return redirect()->route('cart.index')
-            ->with('success', 'Bahan-bahan resep berhasil ditambahkan ke keranjang!');
+            ->with('success', 'Bahan-bahan resep berhasil ditambahkan ke keranjang!')
+            ->with('highlight_items', $addedItemIds);
     }
 
     public function addToCart(Request $request)
     {
         $request->validate([
             'product_id' => 'required',
-            'quantity'   => 'required|integer|min:1'
+            'quantity' => 'required|integer|min:1'
         ]);
 
         $ingredient = DB::table('ingredients')->where('id', $request->product_id)->first();
@@ -118,11 +122,11 @@ class CartController extends Controller
         } else {
             $cart[$id] = [
                 "product_id" => $id,
-                "name"       => $ingredient->name,
-                "quantity"   => $request->quantity,
-                "price"      => $ingredient->price_per_unit,
-                "image"      => $ingredient->image_url,
-                "unit"       => $ingredient->unit
+                "name" => $ingredient->name,
+                "quantity" => $request->quantity,
+                "price" => $ingredient->price_per_unit,
+                "image" => $ingredient->image_url,
+                "unit" => $ingredient->unit
             ];
         }
 
@@ -130,8 +134,7 @@ class CartController extends Controller
         session()->put('cart', $cart);
         session()->put('cart_total', $cartTotal);
 
-        return redirect()->route('cart.index')
-            ->with('success', 'Produk ditambahkan ke keranjang!');
+        return back()->with('success', 'Produk ditambahkan ke keranjang!');
     }
 
     public function updateQty(Request $request, $id)
@@ -199,20 +202,28 @@ class CartController extends Controller
 
         DB::beginTransaction();
         try {
-            DB::statement('CALL create_orders_procedure(?, ?, ?)', ['pending', $totalPrice, Auth::id()]);
+            $orderResult = DB::select('CALL create_orders_procedure(?, ?, ?)', ['pending', $totalPrice, Auth::id()]);
 
-            $order = DB::table('orders')->where('user_id', Auth::id())->latest()->first();
+            if (!empty($orderResult) && isset($orderResult[0]->ErrorDetail)) {
+                throw new \Exception($orderResult[0]->ErrorDetail);
+            }
+
+            if (empty($orderResult) || !isset($orderResult[0]->generated_id)) {
+                throw new \Exception("Gagal membuat order: Respon database tidak valid.");
+            }
+
+            $orderId = $orderResult[0]->generated_id;
 
             foreach ($itemsToCheckout as $id => $item) {
-                $result = DB::statement('CALL create_orderdetail_procedure(?, ?, ?, ?)', [
-                    $order->id,
+                $detailResult = DB::select('CALL create_orderdetail_procedure(?, ?, ?, ?)', [
+                    $orderId,
                     $item['product_id'],
                     $item['quantity'],
                     $item['price']
                 ]);
 
-                if (!empty($result) && isset($result[0]->ErrorDetail)) {
-                    throw new \Exception($result[0]->ErrorDetail);
+                if (!empty($detailResult) && isset($detailResult[0]->ErrorDetail)) {
+                    throw new \Exception($detailResult[0]->ErrorDetail);
                 }
 
                 unset($cart[$id]);
@@ -221,14 +232,14 @@ class CartController extends Controller
             DB::commit();
 
             session()->put('cart', $cart);
-            
-            NotificationController::orderCheckout(Auth::id(), $order->id);
 
-            return redirect()->route('orders.show', $order->id)->with('success', 'Checkout berhasil!');
+            NotificationController::orderCheckout(Auth::id(), $orderId);
+
+            return redirect()->route('orders.show', $orderId)->with('success', 'Checkout berhasil!');
         } catch (\Exception $e) {
             DB::rollBack();
             report($e);
-            return back()->withErrors('Terjadi sebuah kesalahan saat melakukan checkout.');
+            return back()->withErrors('Terjadi sebuah kesalahan saat melakukan checkout: ' . $e->getMessage());
         }
     }
 }
