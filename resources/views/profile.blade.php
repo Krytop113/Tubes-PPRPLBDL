@@ -3,23 +3,6 @@
 @section('title', 'Edit Profil')
 
 @section('content')
-    <div class="container-fluid">
-        @if (session('success'))
-            <div class="alert alert-success border-0 shadow-sm mb-4">
-                <i class="fas fa-check-circle me-2"></i> {{ session('success') }}
-            </div>
-        @endif
-
-        @if ($errors->any())
-            <div class="alert alert-danger border-0 shadow-sm mb-4">
-                <ul class="mb-0">
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
-    </div>
 
     <div class="container py-5">
         <div class="row justify-content-center">
@@ -95,29 +78,9 @@
                             <i class="fa fa-chevron-right small"></i>
                         </a>
 
-                        {{-- @if (!$user->email_verified_at)
-                        <form action="{{ route('verification.send') }}" method="POST">
-                            @csrf
-                            <button type="submit"
-                                class="btn btn-outline-success w-100 mb-3 d-flex justify-content-between align-items-center py-2">
-                                <span>
-                                    <i class="fa fa-envelope-circle-check me-2"></i> Verifikasi Email
-                                </span>
-                                <span class="badge bg-success">Kirim Email</span>
-                            </button>
-                        </form>
-                    @endif --}}
-
                         <button type="submit" class="btn btn-primary w-100 fw-bold py-2 mb-3 shadow-sm">
                             Simpan Perubahan
                         </button>
-
-                        <form action="{{ route('logout') }}" method="POST">
-                            @csrf
-                            <button type="submit" class="btn btn-light text-danger w-100 fw-bold py-2 border">
-                                <i class="fa fa-sign-out-alt me-2"></i> Keluar
-                            </button>
-                        </form>
                     </form>
                 </div>
             </div>

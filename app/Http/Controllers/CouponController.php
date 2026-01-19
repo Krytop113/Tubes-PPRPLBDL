@@ -77,6 +77,8 @@ class CouponController extends Controller
             'end_date' => 'required|date|after:start_date',
         ]);
 
+        DB::beginTransaction();
+
         try {
             $result = DB::select("CALL create_coupon_procedure(?, ?, ?, ?, ?)", [
                 $request->title,
@@ -90,10 +92,14 @@ class CouponController extends Controller
                 throw new Exception($result[0]->ErrorDetail);
             }
 
+            DB::commit();
+
             return redirect()->route('control.coupons.index')
                 ->with('success', 'Kupon ' . $request->title . ' berhasil disimpan!');
         } catch (Exception $e) {
-            return back()->withErrors('Gagal menyimpan: ' . $e->getMessage())->withInput();
+            DB::rollBack();
+            report($e);
+            return back()->withErrors('Gagal menyimpan coupon');
         }
     }
 
@@ -116,6 +122,8 @@ class CouponController extends Controller
             'end_date' => 'required|date|after:start_date',
         ]);
 
+        DB::beginTransaction();
+
         try {
             $result = DB::select('CALL edit_coupon_procedure(?, ?, ?, ?, ?, ?)', [
                 $coupon->id,
@@ -130,15 +138,20 @@ class CouponController extends Controller
                 throw new Exception($result[0]->ErrorDetail);
             }
 
+            DB::commit();
+
             return redirect()->route('control.coupons.index')
                 ->with('success', 'Kupon ' . $coupon->title . ' berhasil diperbarui!');
         } catch (Exception $e) {
-            return back()->withErrors('Gagal memperbarui: ' . $e->getMessage())->withInput();
+            DB::rollBack();
+            report($e);
+            return back()->withErrors('Gagal memperbarui Coupon');
         }
     }
 
     public function destroy(Coupon $coupon)
     {
+        DB::beginTransaction();
         try {
             $result = DB::select('CALL delete_coupon_procedure(?)', [$coupon->id]);
 
@@ -146,9 +159,13 @@ class CouponController extends Controller
                 throw new Exception($result[0]->ErrorDetail);
             }
 
+            DB::commit();
+
             return redirect()->route('control.coupons.index')->with('success', $coupon->title . ' Berhasil dihapus!');
         } catch (Exception $e) {
-            return back()->withErrors($e->getMessage());
+            DB::rollBack();
+            report($e);
+            return back()->withErrors('Gagal menghapus coupon');
         }
     }
 }

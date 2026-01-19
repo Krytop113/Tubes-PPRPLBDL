@@ -10,12 +10,6 @@
             </ol>
         </nav>
 
-        @if (session('success'))
-            <div class="alert alert-success border-0 shadow-sm mb-4" style="border-radius: 15px;">
-                {{ session('success') }}
-            </div>
-        @endif
-
         <div class="row g-5">
             <div class="col-lg-5">
                 <img src="{{ asset('ingredients/' . $ingredient->image_url) }}" class="img-fluid shadow-sm mb-4"

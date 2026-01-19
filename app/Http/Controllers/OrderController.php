@@ -21,7 +21,6 @@ class OrderController extends Controller
     {
         $status = $request->status;
 
-
         $query = Order::with('user')
             ->where('user_id', Auth::id());
 
@@ -193,20 +192,16 @@ class OrderController extends Controller
 
         if ($reportType === 'top_items') {
             $query = DB::table('vw_order_item');
-
             if ($request->filled('start_date') && $request->filled('end_date')) {
+                $query->whereBetween('tanggal_order', [$request->start_date . ' 00:00:00', $request->end_date . ' 23:59:59']);
             }
-
             $orders = $query->get();
             $totalRevenue = $orders->sum('total_omzet_bahan');
         } else {
             $query = DB::table('vw_order_report1');
 
             if ($request->filled('start_date') && $request->filled('end_date')) {
-                $query->whereBetween('tanggal_order', [
-                    $request->start_date . ' 00:00:00',
-                    $request->end_date . ' 23:59:59'
-                ]);
+                $query->whereBetween('tanggal_order', [$request->start_date . ' 00:00:00', $request->end_date . ' 23:59:59']);
             }
 
             if ($request->filled('user_search')) {
@@ -219,13 +214,18 @@ class OrderController extends Controller
             $orders = $query->orderByDesc('tanggal_order')->get();
 
             if ($orders->isNotEmpty()) {
-                $details = OrderDetail::with('ingredient')
+                $details = DB::table('vw_order_details_with_ingredients')
                     ->whereIn('order_id', $orders->pluck('order_id'))
                     ->get()
                     ->groupBy('order_id');
 
                 foreach ($orders as $order) {
                     $order->items = $details->get($order->order_id) ?? collect();
+
+                    $hargaNetto = ($order->subtotal ?? 0) - ($order->diskon_kupon ?? 0);
+                    $order->ongkir_hitung = ($order->total_bayar ?? 0) - $hargaNetto;
+
+                    if ($order->ongkir_hitung < 0) $order->ongkir_hitung = 0;
                 }
             }
 

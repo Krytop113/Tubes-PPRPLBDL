@@ -48,7 +48,7 @@ class UserController extends Controller
 
             DB::commit();
 
-            return redirect()->route('editProfile')
+            return redirect()->route('home')
                 ->with('success', 'Profil Anda berhasil diperbarui!');
         } catch (\Exception $e) {
             DB::rollBack();

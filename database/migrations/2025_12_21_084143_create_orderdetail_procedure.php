@@ -53,7 +53,7 @@ return new class extends Migration
                     FROM orders
                     WHERE id = p_order_id;
 
-                    IF v_order_status <> 'cart' THEN
+                    IF v_order_status NOT IN ('cart', 'pending') THEN
                         SIGNAL SQLSTATE '45000'
                         SET MESSAGE_TEXT = 'Gagal Insert: Order bukan cart.';
                     END IF;

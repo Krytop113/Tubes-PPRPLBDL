@@ -238,6 +238,7 @@ class CartController extends Controller
             return redirect()->route('orders.show', $orderId)->with('success', 'Checkout berhasil!');
         } catch (\Exception $e) {
             DB::rollBack();
+            dd($e);
             report($e);
             return back()->withErrors('Terjadi sebuah kesalahan saat melakukan checkout: ' . $e->getMessage());
         }

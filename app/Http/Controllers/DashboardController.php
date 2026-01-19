@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use App\Models\Order;
 use App\Models\Ingredient;
 use App\Models\Role;
 use App\Models\Payment;

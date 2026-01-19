@@ -26,7 +26,7 @@
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <label class="fw-bold">Nomor Telepon</label>
-                                    <input type="text" name="phone" class="form-control" value="" required>
+                                    <input type="text" name="phone_number" class="form-control" value="" required>
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label class="fw-bold">Tanggal lahir</label>

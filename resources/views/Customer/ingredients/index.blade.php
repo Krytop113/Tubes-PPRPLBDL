@@ -58,8 +58,17 @@
                                 <span>Rp {{ number_format($ingredient->price_per_unit, 0, ',', '.') }} /
                                     {{ $ingredient->unit }}</span>
                             </div>
-                            <a href="{{ route('ingredients.show', $ingredient->id) }}"
-                                class="btn btn-outline-primary w-100 rounded-pill">Tambah</a>
+
+                            @if ($ingredient->stock_quantity > 0)
+                                <a href="{{ route('ingredients.show', $ingredient->id) }}"
+                                    class="btn btn-outline-primary w-100 rounded-pill">
+                                    Tambah
+                                </a>
+                            @else
+                                <button class="btn btn-secondary w-100 rounded-pill" disabled>
+                                    Stok Habis
+                                </button>
+                            @endif
                         </div>
                     </div>
                 </div>
