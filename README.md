@@ -46,13 +46,25 @@ php artisan migrate --seed
 ## Run the application
 Ketika sudah, dapat langsung melakukan run server nya dengan perintah berikut:
 (dilakukan 2 terminal terpisah, 1 npm run dev yang 1 lagi php artisan serve)
-```bash
-php artisan serve
-```
 
 ```bash
 npm run dev
 ```
+
+```bash
+php artisan serve
+```
+
 Buat menjalankan vite agar sesi breeze login dapat berjalan
 
 Dan ketika sudah muncul kedua dari terminal tersebut, silahkan untuk mengklik link 'localhost:8000'
+
+untuk mengakses admin:
+username : admin@example.com
+password : admin123
+
+untuk mengakses employee:
+username : employee@example.com
+password : employee123
+
+untuk mengakses customer bisa untuk sekaligus registrasi akun
