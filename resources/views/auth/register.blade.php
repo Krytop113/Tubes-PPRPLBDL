@@ -24,6 +24,11 @@
                                     <input type="email" name="email" class="form-control bg-light border-0 py-2"
                                         required style="border: 1px solid #dee2e6 !important;">
                                 </div>
+                                <div class="col-md-12">
+                                    <label class="form-label small fw-bold text-secondary">No Telepon</label>
+                                    <input type="text" name="phone_number" class="form-control bg-light border-0 py-2"
+                                        required style="border: 1px solid #dee2e6 !important;">
+                                </div>
                                 <div class="col-md-6">
                                     <label class="form-label small fw-bold text-secondary">Password</label>
                                     <input type="password" name="password" class="form-control bg-light border-0 py-2"

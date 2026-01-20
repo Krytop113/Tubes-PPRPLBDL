@@ -12,7 +12,7 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        $userRoleId = Role::where('name', 'user')->value('id');
+        $userRoleId = Role::where('name', 'customer')->value('id');
         $employeeRoleId = Role::where('name', 'employee')->value('id');
 
         $totalUsers = User::where('role_id', $userRoleId)->count();
